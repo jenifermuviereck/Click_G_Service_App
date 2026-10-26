@@ -72,7 +72,7 @@ const LoginScreen = () => {
         <View style={styles.centerSection}>
           {/* Mobile Number Input */}
           <View style={styles.inputContainer}>
-            <Icon name="cellphone" size={24} color="#344054" style={styles.inputIcon} />
+            <Icon name="cellphone" size={22} color="#1D2939" style={styles.inputIcon} />
             <TextInput
               style={styles.textInput}
               placeholder="Mobile Number"
@@ -84,7 +84,7 @@ const LoginScreen = () => {
             />
           </View>
 
-          {/* Send OTP Button */}
+          {/* Send OTP Button (Centered Pill) */}
           <TouchableOpacity
             style={styles.sendOtpBtn}
             activeOpacity={0.85}
@@ -93,7 +93,7 @@ const LoginScreen = () => {
             {loading ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
-              <Text style={styles.sendOtpBtnText}>Send OTP</Text>
+              <Text style={styles.sendOtpBtnText}>Send OTPs</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -127,80 +127,76 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 36,
+    paddingHorizontal: 22,
+    paddingTop: 30,
+    paddingBottom: 24,
   },
   topLogoSection: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 40,
-    marginBottom: 20,
+    marginTop: 80,
+    marginBottom: 24,
   },
   centerSection: {
     width: '100%',
-    paddingVertical: 20,
+    paddingVertical: 10,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#D0D5DD',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    height: 54,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    height: 50,
     backgroundColor: '#FFFFFF',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    marginBottom: 22,
   },
   inputIcon: {
     marginRight: 12,
   },
   textInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     color: '#101828',
     height: '100%',
     padding: 0,
   },
   sendOtpBtn: {
     backgroundColor: '#07522C',
-    height: 52,
-    borderRadius: 12,
+    width: 190,
+    height: 48,
+    borderRadius: 10,
+    alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#07522C',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 2,
   },
   sendOtpBtnText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     letterSpacing: 0.2,
   },
   registrationCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E7F4EB',
+    backgroundColor: '#EDF6EF',
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#CEE7D6',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    marginTop: 'auto',
+    marginTop: 40,
+    marginBottom: 10,
   },
   avatarIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#C8E6D3',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#D1EAD9',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
@@ -209,12 +205,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardSubtitle: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: '#667085',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   cardTitle: {
-    fontSize: 15,
+    fontSize: 14.5,
     fontWeight: '700',
     color: '#07522C',
   },
