@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   ToastAndroid,
   ScrollView,
   ActivityIndicator,
@@ -64,23 +63,23 @@ const LoginScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-white">
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+        className="flex-1 px-5 sm:px-6"
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled">
-        {/* Top Logo Section */}
-        <View style={styles.topLogoSection}>
-          <ClickGLogo size="large" showTagline={true} />
-        </View>
+        <View className="w-full max-w-sm self-center py-6">
+          {/* Logo Section */}
+          <View className="items-center justify-center mb-8 sm:mb-10">
+            <ClickGLogo size="large" showTagline={true} />
+          </View>
 
-        {/* Center Input and Action Section */}
-        <View style={styles.centerSection}>
           {/* Mobile Number Input */}
-          <View style={styles.inputContainer}>
-            <Icon name="cellphone" size={22} color="#1D2939" style={styles.inputIcon} />
+          <View className="flex-row items-center border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-5 focus:border-brand-green">
+            <Icon name="cellphone" size={22} color="#1D2939" style={{ marginRight: 12 }} />
             <TextInput
-              style={styles.textInput}
+              className="flex-1 text-[15px] text-slate-900 h-full p-0"
               placeholder="Mobile Number"
               placeholderTextColor="#98A2B3"
               keyboardType="number-pad"
@@ -93,142 +92,37 @@ const LoginScreen = () => {
 
           {/* Send OTP Button (Centered Pill) */}
           <TouchableOpacity
-            style={styles.sendOtpBtn}
+            className="bg-brand-green w-48 sm:w-52 h-12 rounded-xl self-center items-center justify-center shadow-md shadow-brand-green/20 mb-8 sm:mb-10"
             activeOpacity={0.85}
             disabled={loading}
             onPress={handleSendOtp}>
             {loading ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
-              <Text style={styles.sendOtpBtnText}>Send OTP</Text>
+              <Text className="text-white text-[15px] font-bold tracking-wide">Send OTP</Text>
             )}
           </TouchableOpacity>
-        </View>
 
-        {/* Bottom Registration Card */}
-        <TouchableOpacity
-          style={styles.registrationCard}
-          activeOpacity={0.88}
-          onPress={() => navigation.navigate('PartnerRegistration', { mobile })}>
-          <View style={styles.avatarIconBox}>
-            <Icon name="account-plus-outline" size={22} color="#07522C" />
-          </View>
-          <View style={styles.cardTextCol}>
-            <Text style={styles.cardSubtitle}>Don't Have an Seller Account</Text>
-            <Text style={styles.cardTitle}>Service Men Registration</Text>
-          </View>
-          <View style={styles.arrowCircle}>
-            <Icon name="arrow-right" size={18} color="#FFFFFF" />
-          </View>
-        </TouchableOpacity>
+          {/* Registration Card */}
+          <TouchableOpacity
+            className="flex-row items-center bg-[#EDF6EF] border border-[#D1EAD9] rounded-2xl px-4 py-3.5 w-full self-center"
+            activeOpacity={0.88}
+            onPress={() => navigation.navigate('PartnerRegistration', { mobile })}>
+            <View className="w-10 h-10 rounded-full bg-[#D1EAD9] items-center justify-center mr-3.5">
+              <Icon name="account-plus-outline" size={22} color="#07522C" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-xs text-slate-500 mb-0.5">Don't Have a Seller Account</Text>
+              <Text className="text-[14px] sm:text-[15px] font-bold text-brand-green">Service Men Registration</Text>
+            </View>
+            <View className="w-9 h-9 rounded-full bg-brand-green items-center justify-center ml-2">
+              <Icon name="arrow-right" size={18} color="#FFFFFF" />
+            </View>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'space-between',
-    paddingHorizontal: 22,
-    paddingTop: 30,
-    paddingBottom: 24,
-  },
-  topLogoSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    top:'14%'
-  },
-  centerSection: {
-    width: '100%',
-    paddingVertical: 10,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#D0D5DD',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    height: 50,
-    backgroundColor: '#FFFFFF',
-    marginBottom: 22,
-  },
-  inputIcon: {
-    marginRight: 12,
-  },
-  textInput: {
-    flex: 1,
-    fontSize: 15,
-    color: '#101828',
-    height: '100%',
-    padding: 0,
-  },
-  sendOtpBtn: {
-    backgroundColor: '#07522C',
-    width: 190,
-    height: 48,
-    borderRadius: 10,
-    alignSelf: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#07522C',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  sendOtpBtnText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-  },
-  registrationCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EDF6EF',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginTop: 40,
-    bottom:'24%'
-  },
-  avatarIconBox: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#D1EAD9',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  cardTextCol: {
-    flex: 1,
-  },
-  cardSubtitle: {
-    fontSize: 11.5,
-    color: '#667085',
-    marginBottom: 3,
-  },
-  cardTitle: {
-    fontSize: 14.5,
-    fontWeight: '700',
-    color: '#07522C',
-  },
-  arrowCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#07522C',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 10,
-  },
-});
 
 export default LoginScreen;

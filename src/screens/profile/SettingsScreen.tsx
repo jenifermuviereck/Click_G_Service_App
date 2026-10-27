@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
   Switch,
 } from 'react-native';
@@ -18,24 +17,26 @@ const SettingsScreen = () => {
   const [paymentUpdates, setPaymentUpdates] = useState(true);
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Top Header */}
-      <View style={styles.topHeader}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
-          <Icon name="arrow-left" size={22} color="#07522C" />
+    <SafeAreaView className="flex-1 bg-slate-50">
+      {/* Top Header - Left-aligned Title with Back Button */}
+      <View className="flex-row items-center px-4 py-3.5 bg-white border-b border-slate-100">
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          className="p-1.5 -ml-1 mr-3"
+          activeOpacity={0.7}>
+          <Icon name="arrow-left" size={24} color="#07522C" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
-        <View style={{ width: 22 }} />
+        <Text className="text-lg sm:text-xl font-bold text-slate-900">Settings</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
         {/* Notifications Section */}
-        <Text style={styles.sectionHeading}>Notifications</Text>
-        <View style={styles.card}>
-          <View style={styles.switchRow}>
-            <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={styles.settingTitle}>Job request alerts</Text>
-              <Text style={styles.settingDesc}>Get notified when a new service request arrives.</Text>
+        <Text className="text-xs sm:text-sm font-bold text-slate-900 mb-2.5">Notifications</Text>
+        <View className="bg-white rounded-2xl border border-slate-200 p-4 mb-5 shadow-sm">
+          <View className="flex-row justify-between items-center py-1">
+            <View className="flex-1 pr-3">
+              <Text className="text-xs sm:text-sm font-semibold text-slate-900 mb-0.5">Job request alerts</Text>
+              <Text className="text-xs text-slate-500 leading-4">Get notified when a new service request arrives.</Text>
             </View>
             <Switch
               value={jobAlerts}
@@ -45,12 +46,12 @@ const SettingsScreen = () => {
             />
           </View>
 
-          <View style={styles.divider} />
+          <View className="h-px bg-slate-100 my-3" />
 
-          <View style={styles.switchRow}>
-            <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={styles.settingTitle}>Payment updates</Text>
-              <Text style={styles.settingDesc}>Receive updates when your earnings are paid.</Text>
+          <View className="flex-row justify-between items-center py-1">
+            <View className="flex-1 pr-3">
+              <Text className="text-xs sm:text-sm font-semibold text-slate-900 mb-0.5">Payment updates</Text>
+              <Text className="text-xs text-slate-500 leading-4">Receive updates when your earnings are paid.</Text>
             </View>
             <Switch
               value={paymentUpdates}
@@ -62,148 +63,43 @@ const SettingsScreen = () => {
         </View>
 
         {/* Privacy & Account Section */}
-        <Text style={styles.sectionHeading}>Privacy &amp; account</Text>
-        <View style={styles.card}>
-          <TouchableOpacity style={styles.linkRow} activeOpacity={0.7}>
-            <Text style={styles.linkTitle}>Terms of Service</Text>
-            <View style={styles.linkRight}>
-              <Text style={styles.viewText}>View</Text>
+        <Text className="text-xs sm:text-sm font-bold text-slate-900 mb-2.5">Privacy &amp; account</Text>
+        <View className="bg-white rounded-2xl border border-slate-200 p-4 mb-5 shadow-sm">
+          <TouchableOpacity className="flex-row justify-between items-center py-1.5 active:opacity-70" activeOpacity={0.7}>
+            <Text className="text-xs sm:text-sm font-medium text-slate-700">Terms of Service</Text>
+            <View className="flex-row items-center">
+              <Text className="text-xs text-slate-400 mr-1">View</Text>
               <Icon name="chevron-right" size={18} color="#98A2B3" />
             </View>
           </TouchableOpacity>
 
-          <View style={styles.divider} />
+          <View className="h-px bg-slate-100 my-2.5" />
 
-          <TouchableOpacity style={styles.linkRow} activeOpacity={0.7}>
-            <Text style={styles.linkTitle}>Privacy Policy</Text>
-            <View style={styles.linkRight}>
-              <Text style={styles.viewText}>View</Text>
+          <TouchableOpacity className="flex-row justify-between items-center py-1.5 active:opacity-70" activeOpacity={0.7}>
+            <Text className="text-xs sm:text-sm font-medium text-slate-700">Privacy Policy</Text>
+            <View className="flex-row items-center">
+              <Text className="text-xs text-slate-400 mr-1">View</Text>
               <Icon name="chevron-right" size={18} color="#98A2B3" />
             </View>
           </TouchableOpacity>
         </View>
 
         {/* About Section */}
-        <Text style={styles.sectionHeading}>About</Text>
-        <View style={styles.card}>
-          <View style={styles.aboutRow}>
-            <Text style={styles.aboutLabel}>App</Text>
-            <Text style={styles.aboutValue}>ClickG Service Partner</Text>
+        <Text className="text-xs sm:text-sm font-bold text-slate-900 mb-2.5">About</Text>
+        <View className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+          <View className="flex-row justify-between py-1.5 border-b border-slate-100">
+            <Text className="text-xs text-slate-500">App</Text>
+            <Text className="text-xs sm:text-sm font-semibold text-slate-900">ClickG Service Partner</Text>
           </View>
 
-          <View style={[styles.aboutRow, { borderBottomWidth: 0 }]}>
-            <Text style={styles.aboutLabel}>Version</Text>
-            <Text style={styles.aboutValue}>1.0.0</Text>
+          <View className="flex-row justify-between pt-2">
+            <Text className="text-xs text-slate-500">Version</Text>
+            <Text className="text-xs sm:text-sm font-semibold text-slate-900">1.0.0</Text>
           </View>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  topHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#07522C',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  sectionHeading: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1D2939',
-    marginBottom: 10,
-    marginTop: 6,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  settingTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1D2939',
-    marginBottom: 2,
-  },
-  settingDesc: {
-    fontSize: 12,
-    color: '#667085',
-    lineHeight: 16,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#F2F4F7',
-    marginVertical: 12,
-  },
-  linkRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-  linkTitle: {
-    fontSize: 14,
-    color: '#344054',
-    fontWeight: '500',
-  },
-  linkRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  viewText: {
-    fontSize: 13,
-    color: '#667085',
-    marginRight: 4,
-  },
-  aboutRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  aboutLabel: {
-    fontSize: 13,
-    color: '#667085',
-  },
-  aboutValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1D2939',
-  },
-});
 
 export default SettingsScreen;

@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
   ToastAndroid,
   Platform,
@@ -35,37 +34,39 @@ const BankDetailsScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Top Header */}
-      <View style={styles.topHeader}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
-          <Icon name="arrow-left" size={22} color="#07522C" />
+    <SafeAreaView className="flex-1 bg-white">
+      {/* Top Header - Left-aligned Title with Back Button */}
+      <View className="flex-row items-center px-4 py-3.5 bg-white border-b border-slate-100">
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          className="p-1.5 -ml-1 mr-3"
+          activeOpacity={0.7}>
+          <Icon name="arrow-left" size={24} color="#07522C" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Bank Details</Text>
-        <View style={{ width: 22 }} />
+        <Text className="text-lg sm:text-xl font-bold text-slate-900">Bank Details</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
         {/* Payout Account Header Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeaderRow}>
-            <Text style={styles.payoutTitle}>Payout account</Text>
-            <View style={styles.verifiedBadge}>
-              <Text style={styles.verifiedBadgeText}>Verified</Text>
+        <View className="bg-slate-50 rounded-2xl border border-slate-200 p-4 mb-5">
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-xs sm:text-sm font-bold text-slate-800">Payout account</Text>
+            <View className="bg-emerald-100 px-2 py-0.5 rounded-full">
+              <Text className="text-[10px] sm:text-xs font-bold text-emerald-800">Verified</Text>
             </View>
           </View>
 
-          <View style={styles.currentAccountRow}>
-            <Text style={styles.currentAccountLabel}>Current account</Text>
-            <Text style={styles.currentAccountValue}>HDFC Bank •••• 9012</Text>
+          <View className="flex-row justify-between items-center pt-2 border-t border-slate-200/60">
+            <Text className="text-xs text-slate-500">Current account</Text>
+            <Text className="text-xs sm:text-sm font-bold text-slate-900">HDFC Bank •••• 9012</Text>
           </View>
         </View>
 
         {/* Form Inputs */}
-        <Text style={styles.fieldLabel}>Account Holder Name *</Text>
-        <View style={styles.inputContainer}>
+        <Text className="text-xs font-semibold text-slate-700 mb-1.5">Account Holder Name *</Text>
+        <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-4 justify-center">
           <TextInput
-            style={styles.textInput}
+            className="text-xs sm:text-sm text-slate-900 p-0"
             value={accountHolder}
             onChangeText={v => setAccountHolder(v.replace(/[^a-zA-Z\s]/g, ''))}
             placeholder="Account Holder Name"
@@ -73,10 +74,10 @@ const BankDetailsScreen = () => {
           />
         </View>
 
-        <Text style={styles.fieldLabel}>Account Number *</Text>
-        <View style={styles.inputContainer}>
+        <Text className="text-xs font-semibold text-slate-700 mb-1.5">Account Number *</Text>
+        <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-4 justify-center">
           <TextInput
-            style={styles.textInput}
+            className="text-xs sm:text-sm text-slate-900 p-0"
             value={accountNumber}
             onChangeText={v => setAccountNumber(v.replace(/[^0-9]/g, '').slice(0, 18))}
             placeholder="123456789012"
@@ -87,10 +88,10 @@ const BankDetailsScreen = () => {
           />
         </View>
 
-        <Text style={styles.fieldLabel}>IFSC Code *</Text>
-        <View style={styles.inputContainer}>
+        <Text className="text-xs font-semibold text-slate-700 mb-1.5">IFSC Code *</Text>
+        <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-1 justify-center">
           <TextInput
-            style={styles.textInput}
+            className="text-xs sm:text-sm text-slate-900 p-0"
             value={ifscCode}
             onChangeText={v => setIfscCode(v.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 11))}
             placeholder="HDFC0001234"
@@ -99,169 +100,32 @@ const BankDetailsScreen = () => {
             maxLength={11}
           />
         </View>
-        <Text style={styles.bankBranchText}>HDFC Bank • BTM Layout, Bengaluru</Text>
+        <Text className="text-[11px] text-slate-500 mb-5">HDFC Bank • BTM Layout, Bengaluru</Text>
 
         {/* Notice Info Card */}
-        <View style={styles.infoBanner}>
+        <View className="flex-row items-center bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-3">
           <Icon name="information-outline" size={18} color="#07522C" style={{ marginRight: 8 }} />
-          <Text style={styles.infoBannerText}>
+          <Text className="text-xs text-brand-green flex-1">
             Changes to your payout account will be verified before your next payment.
           </Text>
         </View>
 
-        <Text style={styles.helperNotice}>
+        <Text className="text-center text-[11px] text-slate-400 px-3">
           Check your account number and IFSC carefully to avoid payment delays.
         </Text>
       </ScrollView>
 
       {/* Save Button */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.saveBtn} activeOpacity={0.88} onPress={handleSave}>
-          <Text style={styles.saveBtnText}>Save Bank Details</Text>
+      <View className="p-4 bg-white border-t border-slate-100">
+        <TouchableOpacity
+          className="bg-brand-green w-full h-12 rounded-xl items-center justify-center shadow-md shadow-brand-green/20"
+          activeOpacity={0.88}
+          onPress={handleSave}>
+          <Text className="text-white text-[15px] font-bold">Save Bank Details</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  topHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#07522C',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  card: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    padding: 16,
-    marginBottom: 20,
-  },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  payoutTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1D2939',
-  },
-  verifiedBadge: {
-    backgroundColor: '#E7F4EB',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  verifiedBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#07522C',
-  },
-  currentAccountRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#EAECF0',
-  },
-  currentAccountLabel: {
-    fontSize: 12,
-    color: '#667085',
-  },
-  currentAccountValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1D2939',
-  },
-  fieldLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#344054',
-    marginBottom: 6,
-    marginTop: 10,
-  },
-  inputContainer: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#D0D5DD',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    height: 48,
-    justifyContent: 'center',
-  },
-  textInput: {
-    fontSize: 15,
-    color: '#101828',
-    height: '100%',
-    padding: 0,
-  },
-  bankBranchText: {
-    fontSize: 12,
-    color: '#667085',
-    marginTop: 4,
-    marginBottom: 16,
-  },
-  infoBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E7F4EB',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
-  },
-  infoBannerText: {
-    fontSize: 12,
-    color: '#07522C',
-    flex: 1,
-    lineHeight: 16,
-  },
-  helperNotice: {
-    fontSize: 11,
-    color: '#667085',
-    marginTop: 6,
-  },
-  bottomBar: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderTopWidth: 1,
-    borderTopColor: '#F2F4F7',
-    backgroundColor: '#FFFFFF',
-  },
-  saveBtn: {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#07522C',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  saveBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-});
 
 export default BankDetailsScreen;

@@ -1,270 +1,171 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
+  ToastAndroid,
+  Platform,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from '../../components/Icon';
+import UploadPickerModal, { PickedFile } from '../../components/UploadPickerModal';
 
 const DocumentsVerificationScreen = () => {
   const navigation = useNavigation<any>();
 
+  const [aadhaarFront, setAadhaarFront] = useState('aadhaar-front.pdf');
+  const [aadhaarBack, setAadhaarBack] = useState('aadhaar-back.pdf');
+  const [bankDoc, setBankDoc] = useState('cancelled-cheque.pdf');
+  const [activeUploadTarget, setActiveUploadTarget] = useState<'front' | 'back' | 'bank' | null>(null);
+
+  const showNotification = (msg: string) => {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(msg, ToastAndroid.SHORT);
+    } else {
+      Alert.alert('Notice', msg);
+    }
+  };
+
+  const handleFilePicked = (file: PickedFile) => {
+    if (activeUploadTarget === 'front') {
+      setAadhaarFront(file.name);
+      showNotification('Aadhaar Front updated');
+    } else if (activeUploadTarget === 'back') {
+      setAadhaarBack(file.name);
+      showNotification('Aadhaar Back updated');
+    } else if (activeUploadTarget === 'bank') {
+      setBankDoc(file.name);
+      showNotification('Bank document updated');
+    }
+    setActiveUploadTarget(null);
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Top Header */}
-      <View style={styles.topHeader}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
-          <Icon name="arrow-left" size={22} color="#07522C" />
+    <SafeAreaView className="flex-1 bg-slate-50">
+      {/* Top Header - Left-aligned Title with Back Button */}
+      <View className="flex-row items-center px-4 py-3.5 bg-white border-b border-slate-100">
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          className="p-1.5 -ml-1 mr-3"
+          activeOpacity={0.7}>
+          <Icon name="arrow-left" size={24} color="#07522C" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Documents &amp; Verification</Text>
-        <View style={{ width: 22 }} />
+        <Text className="text-lg sm:text-xl font-bold text-slate-900">Documents &amp; Verification</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
         {/* Verified Partner Banner Card */}
-        <View style={styles.verifiedBannerCard}>
-          <View style={styles.bannerHeaderRow}>
-            <View style={styles.checkCircle}>
+        <View className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 mb-5">
+          <View className="flex-row items-center mb-3">
+            <View className="w-9 h-9 rounded-full bg-emerald-200 items-center justify-center mr-3">
               <Icon name="check" size={18} color="#07522C" />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.bannerTitle}>Verified partner</Text>
-              <Text style={styles.bannerSub}>Your identity and bank details have been verified.</Text>
+            <View className="flex-1">
+              <Text className="text-sm sm:text-base font-bold text-emerald-950">Verified partner</Text>
+              <Text className="text-[11px] sm:text-xs text-emerald-800">Your identity and bank details have been verified.</Text>
             </View>
           </View>
 
-          <View style={styles.bannerDivider} />
+          <View className="h-px bg-emerald-200/60 mb-2.5" />
 
-          <View style={styles.bannerMetaRow}>
-            <Text style={styles.metaLabel}>Partner reference</Text>
-            <Text style={styles.metaValue}>CG-P-2084</Text>
+          <View className="flex-row justify-between py-1">
+            <Text className="text-xs text-emerald-800/80">Partner reference</Text>
+            <Text className="text-xs font-bold text-emerald-950">CG-P-2084</Text>
           </View>
-          <View style={styles.bannerMetaRow}>
-            <Text style={styles.metaLabel}>Approved on</Text>
-            <Text style={styles.metaValue}>09 Oct 2026</Text>
+          <View className="flex-row justify-between py-1">
+            <Text className="text-xs text-emerald-800/80">Approved on</Text>
+            <Text className="text-xs font-bold text-emerald-950">09 Oct 2026</Text>
           </View>
         </View>
 
         {/* Identity Documents Section */}
-        <Text style={styles.sectionHeading}>Identity documents</Text>
-        <View style={styles.card}>
-          <View style={styles.docHeaderRow}>
-            <View style={styles.docTitleRow}>
+        <Text className="text-sm sm:text-base font-bold text-slate-900 mb-2.5">Identity documents</Text>
+        <View className="bg-white rounded-2xl border border-slate-200 p-4 mb-5 shadow-sm">
+          <View className="flex-row justify-between items-center mb-3">
+            <View className="flex-row items-center">
               <Icon name="card-account-details-outline" size={20} color="#07522C" style={{ marginRight: 8 }} />
-              <Text style={styles.docTitle}>Aadhaar Card</Text>
+              <Text className="text-xs sm:text-sm font-bold text-slate-800">Aadhaar Card</Text>
             </View>
-            <View style={styles.verifiedPill}>
-              <Text style={styles.verifiedPillText}>Verified</Text>
+            <View className="bg-emerald-100 px-2 py-0.5 rounded-full">
+              <Text className="text-[10px] font-bold text-emerald-800">Verified</Text>
             </View>
           </View>
 
-          <View style={styles.docInfoRow}>
-            <Text style={styles.docInfoLabel}>Document number</Text>
-            <Text style={styles.docInfoValue}>•••• •••• 4821</Text>
+          <View className="flex-row justify-between py-2 border-b border-slate-100">
+            <Text className="text-xs text-slate-500">Document number</Text>
+            <Text className="text-xs font-semibold text-slate-800">•••• •••• 4821</Text>
           </View>
-          <View style={styles.docInfoRow}>
-            <Text style={styles.docInfoLabel}>Front copy</Text>
-            <Text style={styles.docInfoFile}>aadhaar-front.pdf</Text>
+
+          <View className="flex-row justify-between items-center py-2.5 border-b border-slate-100">
+            <View>
+              <Text className="text-xs text-slate-500">Front copy</Text>
+              <Text className="text-xs font-semibold text-brand-green">{aadhaarFront}</Text>
+            </View>
+            <TouchableOpacity
+              className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200"
+              onPress={() => setActiveUploadTarget('front')}>
+              <Text className="text-[11px] font-bold text-brand-green">Replace</Text>
+            </TouchableOpacity>
           </View>
-          <View style={[styles.docInfoRow, { borderBottomWidth: 0 }]}>
-            <Text style={styles.docInfoLabel}>Back copy</Text>
-            <Text style={styles.docInfoFile}>aadhaar-back.pdf</Text>
+
+          <View className="flex-row justify-between items-center pt-2.5">
+            <View>
+              <Text className="text-xs text-slate-500">Back copy</Text>
+              <Text className="text-xs font-semibold text-brand-green">{aadhaarBack}</Text>
+            </View>
+            <TouchableOpacity
+              className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200"
+              onPress={() => setActiveUploadTarget('back')}>
+              <Text className="text-[11px] font-bold text-brand-green">Replace</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* Bank Verification Section */}
-        <Text style={styles.sectionHeading}>Bank verification</Text>
-        <View style={styles.card}>
-          <View style={styles.docInfoRow}>
-            <Text style={styles.docInfoLabel}>Account</Text>
-            <Text style={styles.docInfoValue}>HDFC Bank •••• 9012</Text>
+        <Text className="text-sm sm:text-base font-bold text-slate-900 mb-2.5">Bank verification</Text>
+        <View className="bg-white rounded-2xl border border-slate-200 p-4 mb-5 shadow-sm">
+          <View className="flex-row justify-between py-2 border-b border-slate-100">
+            <Text className="text-xs text-slate-500">Account</Text>
+            <Text className="text-xs font-semibold text-slate-800">HDFC Bank •••• 9012</Text>
           </View>
-          <View style={[styles.docInfoRow, { borderBottomWidth: 0 }]}>
-            <Text style={styles.docInfoLabel}>Status</Text>
-            <Text style={styles.verifiedTextGreen}>Verified</Text>
+          <View className="flex-row justify-between items-center py-2.5 border-b border-slate-100">
+            <View>
+              <Text className="text-xs text-slate-500">Cheque / Statement</Text>
+              <Text className="text-xs font-semibold text-brand-green">{bankDoc}</Text>
+            </View>
+            <TouchableOpacity
+              className="px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200"
+              onPress={() => setActiveUploadTarget('bank')}>
+              <Text className="text-[11px] font-bold text-brand-green">Upload</Text>
+            </TouchableOpacity>
+          </View>
+          <View className="flex-row justify-between pt-2">
+            <Text className="text-xs text-slate-500">Status</Text>
+            <Text className="text-xs font-bold text-brand-green">Verified</Text>
           </View>
         </View>
 
         {/* Support Help Banner */}
-        <View style={styles.supportBanner}>
+        <View className="flex-row items-center bg-emerald-50 border border-emerald-200 rounded-xl p-3">
           <Icon name="information-outline" size={18} color="#07522C" style={{ marginRight: 8 }} />
-          <Text style={styles.supportBannerText}>
-            Need to update your identity documents? Contact Help &amp; Support for a secure review.
+          <Text className="text-xs text-brand-green flex-1">
+            Need to update your identity documents? You can upload and replace copies above for verification.
           </Text>
         </View>
       </ScrollView>
+
+      <UploadPickerModal
+        visible={activeUploadTarget !== null}
+        onClose={() => setActiveUploadTarget(null)}
+        onPick={handleFilePicked}
+        title="Upload Verification Document"
+        allowDocs={true}
+      />
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  topHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#07522C',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  verifiedBannerCard: {
-    backgroundColor: '#E7F4EB',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#CEE7D6',
-    padding: 16,
-    marginBottom: 20,
-  },
-  bannerHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  checkCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  bannerTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#07522C',
-    marginBottom: 2,
-  },
-  bannerSub: {
-    fontSize: 12,
-    color: '#344054',
-    lineHeight: 16,
-  },
-  bannerDivider: {
-    height: 1,
-    backgroundColor: '#CEE7D6',
-    marginVertical: 12,
-  },
-  bannerMetaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 3,
-  },
-  metaLabel: {
-    fontSize: 12,
-    color: '#667085',
-  },
-  metaValue: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1D2939',
-  },
-  sectionHeading: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1D2939',
-    marginBottom: 10,
-    marginTop: 6,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  docHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  docTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  docTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1D2939',
-  },
-  verifiedPill: {
-    backgroundColor: '#E7F4EB',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  verifiedPillText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#07522C',
-  },
-  docInfoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  docInfoLabel: {
-    fontSize: 12,
-    color: '#667085',
-  },
-  docInfoValue: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1D2939',
-  },
-  docInfoFile: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#07522C',
-  },
-  verifiedTextGreen: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#07522C',
-  },
-  supportBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    padding: 14,
-    marginTop: 8,
-  },
-  supportBannerText: {
-    fontSize: 12,
-    color: '#475467',
-    flex: 1,
-    lineHeight: 16,
-  },
-});
 
 export default DocumentsVerificationScreen;

@@ -4,15 +4,16 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
   ToastAndroid,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from '../../components/Icon';
+import UploadPickerModal, { PickedFile } from '../../components/UploadPickerModal';
 import authService from '../../services/authService';
 
 const TOTAL_STEPS = 4;
@@ -24,6 +25,8 @@ const PartnerRegistrationScreen = () => {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [uploadTarget, setUploadTarget] = useState<'profile' | 'doc1' | 'doc2' | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -48,22 +51,16 @@ const PartnerRegistrationScreen = () => {
   const updateField = (key: string, value: string) => {
     let cleanVal = value;
     if (key === 'mobile') {
-      // Only digits, maximum 10 digits
       cleanVal = value.replace(/[^0-9]/g, '').slice(0, 10);
     } else if (key === 'pincode') {
-      // PIN code: strictly 6 digits
       cleanVal = value.replace(/[^0-9]/g, '').slice(0, 6);
     } else if (key === 'experienceYears') {
-      // Experience: strictly digits, max 2
       cleanVal = value.replace(/[^0-9]/g, '').slice(0, 2);
     } else if (key === 'accountNumber') {
-      // Bank Account: strictly digits, up to 18
       cleanVal = value.replace(/[^0-9]/g, '').slice(0, 18);
     } else if (key === 'ifscCode') {
-      // IFSC Code: uppercase alphanumeric, max 11
       cleanVal = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 11);
     } else if (key === 'fullName' || key === 'accountHolderName') {
-      // Names: strictly alphabetical letters and spaces
       cleanVal = value.replace(/[^a-zA-Z\s]/g, '');
     }
     setFormData(prev => ({ ...prev, [key]: cleanVal }));
@@ -89,6 +86,20 @@ const PartnerRegistrationScreen = () => {
     } else {
       navigation.goBack();
     }
+  };
+
+  const handleFilePicked = (file: PickedFile) => {
+    if (uploadTarget === 'profile') {
+      setProfilePhoto(file.uri);
+      showNotification('Profile photo uploaded');
+    } else if (uploadTarget === 'doc1') {
+      updateField('docFile1', `${file.name} • ${file.size}`);
+      showNotification('Document 1 uploaded');
+    } else if (uploadTarget === 'doc2') {
+      updateField('docFile2', `${file.name} • ${file.size}`);
+      showNotification('Document 2 uploaded');
+    }
+    setUploadTarget(null);
   };
 
   const handleSubmit = async () => {
@@ -117,19 +128,18 @@ const PartnerRegistrationScreen = () => {
 
   // Render Step Indicator Bar
   const renderStepHeader = () => (
-    <View style={styles.stepHeaderContainer}>
-      <View style={styles.stepHeaderRow}>
-        <Text style={styles.stepCounterText}>{`Step ${currentStep} of ${TOTAL_STEPS}`}</Text>
-        <Text style={styles.requiredIndicator}>* Required</Text>
+    <View className="mb-5">
+      <View className="flex-row justify-between items-center mb-2">
+        <Text className="text-xs sm:text-[13px] font-bold text-brand-green">{`Step ${currentStep} of ${TOTAL_STEPS}`}</Text>
+        <Text className="text-xs text-slate-400">* Required</Text>
       </View>
-      <View style={styles.progressBarTrack}>
+      <View className="flex-row gap-2">
         {[1, 2, 3, 4].map(step => (
           <View
             key={step}
-            style={[
-              styles.progressSegment,
-              step <= currentStep ? styles.progressSegmentActive : styles.progressSegmentInactive,
-            ]}
+            className={`flex-1 h-1 rounded-full ${
+              step <= currentStep ? 'bg-brand-green' : 'bg-slate-200'
+            }`}
           />
         ))}
       </View>
@@ -139,18 +149,41 @@ const PartnerRegistrationScreen = () => {
   // Render Step 1: Personal Details
   const renderStep1 = () => (
     <View>
-      <Text style={styles.sectionTitle}>Personal Details</Text>
+      <Text className="text-base sm:text-lg font-bold text-slate-900 mb-4">Personal Details</Text>
 
       {/* Add Profile Photo Card */}
-      <TouchableOpacity style={styles.photoUploadCard} activeOpacity={0.8}>
-        <Icon name="camera-outline" size={20} color="#07522C" style={{ marginRight: 8 }} />
-        <Text style={styles.photoUploadText}>Add Profile Photo (optional)</Text>
-      </TouchableOpacity>
+      {profilePhoto ? (
+        <View className="flex-row items-center bg-emerald-50/60 border border-emerald-200 rounded-2xl p-3 mb-4">
+          <Image source={{ uri: profilePhoto }} className="w-12 h-12 rounded-full border border-emerald-400 mr-3" />
+          <View className="flex-1">
+            <Text className="text-xs font-bold text-slate-800">Profile Photo Uploaded</Text>
+            <Text className="text-[11px] text-emerald-800">Ready for review</Text>
+          </View>
+          <TouchableOpacity
+            className="px-2.5 py-1 bg-white rounded-lg border border-slate-200 mr-1.5"
+            onPress={() => setUploadTarget('profile')}>
+            <Text className="text-[11px] font-bold text-brand-green">Change</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="p-1.5 bg-white rounded-lg border border-rose-200"
+            onPress={() => setProfilePhoto(null)}>
+            <Icon name="trash-can-outline" size={16} color="#D92D20" />
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <TouchableOpacity
+          className="flex-row items-center justify-center border border-dashed border-emerald-300 bg-emerald-50/50 rounded-2xl py-3.5 mb-4"
+          activeOpacity={0.8}
+          onPress={() => setUploadTarget('profile')}>
+          <Icon name="camera-outline" size={20} color="#07522C" style={{ marginRight: 8 }} />
+          <Text className="text-xs sm:text-sm font-bold text-brand-green">Add Profile Photo (optional)</Text>
+        </TouchableOpacity>
+      )}
 
-      <Text style={styles.fieldLabel}>Full Name *</Text>
-      <View style={styles.inputContainer}>
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">Full Name *</Text>
+      <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-4 justify-center">
         <TextInput
-          style={styles.textInput}
+          className="text-xs sm:text-sm text-slate-900 p-0"
           value={formData.fullName}
           onChangeText={v => updateField('fullName', v)}
           placeholder="Enter full name"
@@ -158,10 +191,10 @@ const PartnerRegistrationScreen = () => {
         />
       </View>
 
-      <Text style={styles.fieldLabel}>Mobile Number *</Text>
-      <View style={styles.inputContainer}>
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">Mobile Number *</Text>
+      <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-1 justify-center">
         <TextInput
-          style={styles.textInput}
+          className="text-xs sm:text-sm text-slate-900 p-0"
           value={formData.mobile}
           onChangeText={v => updateField('mobile', v)}
           placeholder="Mobile Number (10 digits)"
@@ -171,12 +204,12 @@ const PartnerRegistrationScreen = () => {
           maxLength={10}
         />
       </View>
-      <Text style={styles.helperText}>Verified mobile number</Text>
+      <Text className="text-[11px] text-slate-400 mb-4">Verified mobile number</Text>
 
-      <Text style={styles.fieldLabel}>Email (optional)</Text>
-      <View style={styles.inputContainer}>
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">Email (optional)</Text>
+      <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-4 justify-center">
         <TextInput
-          style={styles.textInput}
+          className="text-xs sm:text-sm text-slate-900 p-0"
           value={formData.email}
           onChangeText={v => updateField('email', v)}
           placeholder="Enter email address"
@@ -190,12 +223,12 @@ const PartnerRegistrationScreen = () => {
   // Render Step 2: Address & Experience
   const renderStep2 = () => (
     <View>
-      <Text style={styles.sectionTitle}>Address &amp; Experience</Text>
+      <Text className="text-base sm:text-lg font-bold text-slate-900 mb-4">Address &amp; Experience</Text>
 
-      <Text style={styles.fieldLabel}>Address *</Text>
-      <View style={[styles.inputContainer, styles.multilineContainer]}>
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">Address *</Text>
+      <View className="border border-slate-300 rounded-xl p-3.5 h-20 bg-white mb-4">
         <TextInput
-          style={[styles.textInput, styles.multilineInput]}
+          className="text-xs sm:text-sm text-slate-900 p-0 flex-1"
           value={formData.address}
           onChangeText={v => updateField('address', v)}
           placeholder="Enter complete address"
@@ -204,10 +237,10 @@ const PartnerRegistrationScreen = () => {
         />
       </View>
 
-      <Text style={styles.fieldLabel}>City *</Text>
-      <View style={styles.inputContainer}>
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">City *</Text>
+      <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-4 justify-center">
         <TextInput
-          style={styles.textInput}
+          className="text-xs sm:text-sm text-slate-900 p-0"
           value={formData.city}
           onChangeText={v => updateField('city', v)}
           placeholder="City"
@@ -215,10 +248,10 @@ const PartnerRegistrationScreen = () => {
         />
       </View>
 
-      <Text style={styles.fieldLabel}>PIN Code *</Text>
-      <View style={styles.inputContainer}>
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">PIN Code *</Text>
+      <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-4 justify-center">
         <TextInput
-          style={styles.textInput}
+          className="text-xs sm:text-sm text-slate-900 p-0"
           value={formData.pincode}
           onChangeText={v => updateField('pincode', v)}
           placeholder="560076"
@@ -229,10 +262,10 @@ const PartnerRegistrationScreen = () => {
         />
       </View>
 
-      <Text style={styles.fieldLabel}>Experience in Years *</Text>
-      <View style={styles.inputContainer}>
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">Experience in Years *</Text>
+      <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-1 justify-center">
         <TextInput
-          style={styles.textInput}
+          className="text-xs sm:text-sm text-slate-900 p-0"
           value={formData.experienceYears}
           onChangeText={v => updateField('experienceYears', v)}
           placeholder="5"
@@ -242,55 +275,67 @@ const PartnerRegistrationScreen = () => {
           maxLength={2}
         />
       </View>
-      <Text style={styles.helperText}>Enter total years of service experience.</Text>
+      <Text className="text-[11px] text-slate-400 mb-4">Enter total years of service experience.</Text>
     </View>
   );
 
   // Render Step 3: Identity Documents
   const renderStep3 = () => (
     <View>
-      <Text style={styles.sectionTitle}>Identity Documents</Text>
+      <Text className="text-base sm:text-lg font-bold text-slate-900 mb-4">Identity Documents</Text>
 
       {/* Doc 1 */}
-      <Text style={styles.fieldLabel}>Document Type *</Text>
-      <View style={styles.inputContainer}>
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">Document Type *</Text>
+      <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-3 justify-center">
         <TextInput
-          style={styles.textInput}
+          className="text-xs sm:text-sm text-slate-900 p-0"
           value={formData.docType1}
           onChangeText={v => updateField('docType1', v)}
         />
       </View>
 
-      <View style={styles.docUploadCard}>
-        <Icon name="file-document-outline" size={26} color="#07522C" style={styles.docIcon} />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.docStatusTitle}>File uploaded • Replace</Text>
-          <Text style={styles.docFileName}>{formData.docFile1}</Text>
+      <TouchableOpacity
+        className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl p-3.5 mb-4"
+        activeOpacity={0.7}
+        onPress={() => setUploadTarget('doc1')}>
+        <Icon name="file-document-outline" size={24} color="#07522C" style={{ marginRight: 10 }} />
+        <View className="flex-1">
+          <Text className="text-xs font-bold text-slate-800">File uploaded • Tap to replace</Text>
+          <Text className="text-[11px] text-slate-500">{formData.docFile1}</Text>
         </View>
-      </View>
+        <View className="px-2.5 py-1 bg-white rounded-lg border border-slate-200">
+          <Text className="text-[11px] font-bold text-brand-green">Replace</Text>
+        </View>
+      </TouchableOpacity>
 
       {/* Doc 2 */}
-      <Text style={styles.fieldLabel}>Document Type *</Text>
-      <View style={styles.inputContainer}>
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">Document Type *</Text>
+      <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-3 justify-center">
         <TextInput
-          style={styles.textInput}
+          className="text-xs sm:text-sm text-slate-900 p-0"
           value={formData.docType2}
           onChangeText={v => updateField('docType2', v)}
         />
       </View>
 
-      <View style={styles.docUploadCard}>
-        <Icon name="file-document-outline" size={26} color="#07522C" style={styles.docIcon} />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.docStatusTitle}>File uploaded • Replace</Text>
-          <Text style={styles.docFileName}>{formData.docFile2}</Text>
+      <TouchableOpacity
+        className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl p-3.5 mb-4"
+        activeOpacity={0.7}
+        onPress={() => setUploadTarget('doc2')}>
+        <Icon name="file-document-outline" size={24} color="#07522C" style={{ marginRight: 10 }} />
+        <View className="flex-1">
+          <Text className="text-xs font-bold text-slate-800">File uploaded • Tap to replace</Text>
+          <Text className="text-[11px] text-slate-500">{formData.docFile2}</Text>
         </View>
-      </View>
+        <View className="px-2.5 py-1 bg-white rounded-lg border border-slate-200">
+          <Text className="text-[11px] font-bold text-brand-green">Replace</Text>
+        </View>
+      </TouchableOpacity>
 
       {/* Verification Notice */}
-      <View style={styles.infoBox}>
+      <View className="flex-row items-center bg-emerald-50 border border-emerald-200 rounded-xl p-3">
         <Icon name="information-outline" size={18} color="#07522C" style={{ marginRight: 8 }} />
-        <Text style={styles.infoText}>Your documents are used only for partner verification.</Text>
+        <Text className="text-xs text-brand-green flex-1">Your documents are used only for partner verification.</Text>
       </View>
     </View>
   );
@@ -298,12 +343,12 @@ const PartnerRegistrationScreen = () => {
   // Render Step 4: Bank Details
   const renderStep4 = () => (
     <View>
-      <Text style={styles.sectionTitle}>Bank Details</Text>
+      <Text className="text-base sm:text-lg font-bold text-slate-900 mb-4">Bank Details</Text>
 
-      <Text style={styles.fieldLabel}>Account Holder Name *</Text>
-      <View style={styles.inputContainer}>
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">Account Holder Name *</Text>
+      <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-4 justify-center">
         <TextInput
-          style={styles.textInput}
+          className="text-xs sm:text-sm text-slate-900 p-0"
           value={formData.accountHolderName}
           onChangeText={v => updateField('accountHolderName', v)}
           placeholder="Account Holder Name"
@@ -311,10 +356,10 @@ const PartnerRegistrationScreen = () => {
         />
       </View>
 
-      <Text style={styles.fieldLabel}>Account Number *</Text>
-      <View style={styles.inputContainer}>
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">Account Number *</Text>
+      <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-4 justify-center">
         <TextInput
-          style={styles.textInput}
+          className="text-xs sm:text-sm text-slate-900 p-0"
           value={formData.accountNumber}
           onChangeText={v => updateField('accountNumber', v)}
           placeholder="123456789012"
@@ -325,10 +370,10 @@ const PartnerRegistrationScreen = () => {
         />
       </View>
 
-      <Text style={styles.fieldLabel}>IFSC Code *</Text>
-      <View style={styles.inputContainer}>
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">IFSC Code *</Text>
+      <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-4 justify-center">
         <TextInput
-          style={styles.textInput}
+          className="text-xs sm:text-sm text-slate-900 p-0"
           value={formData.ifscCode}
           onChangeText={v => updateField('ifscCode', v.toUpperCase())}
           placeholder="HDFC0001234"
@@ -337,10 +382,10 @@ const PartnerRegistrationScreen = () => {
         />
       </View>
 
-      <Text style={styles.fieldLabel}>G Pay UPI Id *</Text>
-      <View style={styles.inputContainer}>
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">G Pay UPI Id *</Text>
+      <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-4 justify-center">
         <TextInput
-          style={styles.textInput}
+          className="text-xs sm:text-sm text-slate-900 p-0"
           value={formData.gPayUpi}
           onChangeText={v => updateField('gPayUpi', v)}
           placeholder="user@upi"
@@ -348,10 +393,10 @@ const PartnerRegistrationScreen = () => {
         />
       </View>
 
-      <Text style={styles.fieldLabel}>Phone Pay UPI Id *</Text>
-      <View style={styles.inputContainer}>
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">Phone Pay UPI Id *</Text>
+      <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-4 justify-center">
         <TextInput
-          style={styles.textInput}
+          className="text-xs sm:text-sm text-slate-900 p-0"
           value={formData.phonePeUpi}
           onChangeText={v => updateField('phonePeUpi', v)}
           placeholder="user@ybl"
@@ -360,9 +405,9 @@ const PartnerRegistrationScreen = () => {
       </View>
 
       {/* Account Info Notice */}
-      <View style={styles.infoBox}>
+      <View className="flex-row items-center bg-emerald-50 border border-emerald-200 rounded-xl p-3">
         <Icon name="information-outline" size={18} color="#07522C" style={{ marginRight: 8 }} />
-        <Text style={styles.infoText}>
+        <Text className="text-xs text-brand-green flex-1">
           Ensure the account holder name matches your identity document.
         </Text>
       </View>
@@ -372,48 +417,51 @@ const PartnerRegistrationScreen = () => {
   // Render Submitted / Success Screen
   if (isSubmitted) {
     return (
-      <SafeAreaView style={styles.container}>
-        {/* Header */}
-        <View style={styles.navHeaderRow}>
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Icon name="arrow-left" size={22} color="#07522C" />
+      <SafeAreaView className="flex-1 bg-white">
+        {/* Header - Left-aligned Title with Back Button */}
+        <View className="flex-row items-center px-4 py-3.5 border-b border-slate-100">
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Login')}
+            className="p-1.5 -ml-1 mr-3"
+            activeOpacity={0.7}>
+            <Icon name="arrow-left" size={24} color="#07522C" />
           </TouchableOpacity>
-          <Text style={styles.navHeaderTitle}>Registration Submitted</Text>
-          <View style={{ width: 22 }} />
+          <Text className="text-lg sm:text-xl font-bold text-slate-900">Registration Submitted</Text>
         </View>
 
-        <View style={styles.submittedContainer}>
-          {/* Checkmark Circle */}
-          <View style={styles.successCircle}>
+        <View className="flex-1 items-center justify-center p-6">
+          <View className="w-16 h-16 rounded-full bg-emerald-100 items-center justify-center mb-4">
             <Icon name="check" size={32} color="#07522C" />
           </View>
 
-          <Text style={styles.submittedHeading}>Details submitted successfully</Text>
+          <Text className="text-lg sm:text-xl font-bold text-slate-900 text-center mb-6">
+            Details submitted successfully
+          </Text>
 
           {/* Reference Card */}
-          <View style={styles.referenceCard}>
-            <View style={styles.refRow}>
-              <Text style={styles.refLabel}>Partner</Text>
-              <Text style={styles.refValue}>{formData.fullName || 'Kumar'}</Text>
+          <View className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4">
+            <View className="flex-row justify-between py-2 border-b border-slate-200/60">
+              <Text className="text-xs text-slate-500">Partner</Text>
+              <Text className="text-xs sm:text-sm font-bold text-slate-800">{formData.fullName || 'Kumar'}</Text>
             </View>
-            <View style={styles.refRow}>
-              <Text style={styles.refLabel}>Registration reference</Text>
-              <Text style={styles.refValue}>CG-P-2084</Text>
+            <View className="flex-row justify-between py-2 border-b border-slate-200/60">
+              <Text className="text-xs text-slate-500">Registration reference</Text>
+              <Text className="text-xs sm:text-sm font-bold text-brand-green">CG-P-2084</Text>
             </View>
-            <View style={[styles.refRow, { borderBottomWidth: 0 }]}>
-              <Text style={styles.refLabel}>Submitted</Text>
-              <Text style={styles.refValue}>08 Oct 2026</Text>
+            <View className="flex-row justify-between pt-2">
+              <Text className="text-xs text-slate-500">Submitted</Text>
+              <Text className="text-xs sm:text-sm font-semibold text-slate-700">08 Oct 2026</Text>
             </View>
           </View>
         </View>
 
         {/* Back to Login Button */}
-        <View style={styles.submittedBottomBar}>
+        <View className="p-4 bg-white border-t border-slate-100">
           <TouchableOpacity
-            style={styles.submitVerifyBtn}
+            className="w-full h-12 bg-brand-green rounded-xl items-center justify-center shadow-md shadow-brand-green/20"
             activeOpacity={0.88}
             onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.submitVerifyBtnText}>Back to Login</Text>
+            <Text className="text-white text-[15px] font-bold">Back to Login</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -421,18 +469,20 @@ const PartnerRegistrationScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Top Header */}
-      <View style={styles.navHeaderRow}>
-        <TouchableOpacity onPress={handleBack} style={{ padding: 4 }}>
-          <Icon name="arrow-left" size={22} color="#07522C" />
+    <SafeAreaView className="flex-1 bg-white">
+      {/* Top Header - Left-aligned Title with Back Button */}
+      <View className="flex-row items-center px-4 py-3.5 border-b border-slate-100">
+        <TouchableOpacity
+          onPress={handleBack}
+          className="p-1.5 -ml-1 mr-3"
+          activeOpacity={0.7}>
+          <Icon name="arrow-left" size={24} color="#07522C" />
         </TouchableOpacity>
-        <Text style={styles.navHeaderTitle}>Partner Registration</Text>
-        <View style={{ width: 22 }} />
+        <Text className="text-lg sm:text-xl font-bold text-slate-900">Partner Registration</Text>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerClassName="p-4 sm:p-5 pb-6"
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled">
         {renderStepHeader()}
@@ -444,327 +494,46 @@ const PartnerRegistrationScreen = () => {
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <View style={styles.bottomBar}>
-        {currentStep === 1 && (
-          <TouchableOpacity
-            style={styles.step1BackHeader}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}>
-            <Icon name="arrow-left" size={16} color="#07522C" style={{ marginRight: 6 }} />
-            <Text style={styles.step1BackHeaderText}>Partner Registration</Text>
-          </TouchableOpacity>
-        )}
-
+      <View className="p-4 bg-white border-t border-slate-100">
         {currentStep < 4 ? (
-          <View style={styles.twoButtonRow}>
-            <TouchableOpacity style={styles.backBtn} activeOpacity={0.8} onPress={handleBack}>
-              <Text style={styles.backBtnText}>Back</Text>
+          <View className="flex-row gap-3">
+            <TouchableOpacity
+              className="flex-1 h-12 rounded-xl border border-slate-300 bg-white items-center justify-center"
+              activeOpacity={0.8}
+              onPress={handleBack}>
+              <Text className="text-slate-700 text-sm font-bold">Back</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.continueBtn} activeOpacity={0.85} onPress={handleNext}>
-              <Text style={styles.continueBtnText}>Continue</Text>
+            <TouchableOpacity
+              className="flex-1 h-12 rounded-xl bg-brand-green items-center justify-center shadow-sm"
+              activeOpacity={0.85}
+              onPress={handleNext}>
+              <Text className="text-white text-sm font-bold">Continue</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.step4SubmitWrapper}>
+          <View>
             <TouchableOpacity
-              style={styles.submitVerifyBtn}
+              className="w-full h-12 bg-brand-green rounded-xl items-center justify-center mb-2 shadow-sm"
               activeOpacity={0.85}
               onPress={handleSubmit}>
-              <Text style={styles.submitVerifyBtnText}>Submit for Verification</Text>
+              <Text className="text-white text-sm font-bold">Submit for Verification</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.step4BackLink} onPress={handleBack}>
-              <Text style={styles.step4BackText}>Back</Text>
+            <TouchableOpacity className="py-1 items-center" onPress={handleBack}>
+              <Text className="text-xs font-semibold text-slate-500">Back</Text>
             </TouchableOpacity>
           </View>
         )}
       </View>
+
+      <UploadPickerModal
+        visible={uploadTarget !== null}
+        onClose={() => setUploadTarget(null)}
+        onPick={handleFilePicked}
+        title={uploadTarget === 'profile' ? 'Upload Profile Photo' : 'Upload Document'}
+        allowDocs={uploadTarget !== 'profile'}
+      />
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  navHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  navHeaderTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#07522C',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  stepHeaderContainer: {
-    marginBottom: 20,
-  },
-  stepHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  stepCounterText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#07522C',
-  },
-  requiredIndicator: {
-    fontSize: 12,
-    color: '#98A2B3',
-  },
-  progressBarTrack: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  progressSegment: {
-    flex: 1,
-    height: 4,
-    borderRadius: 2,
-  },
-  progressSegmentActive: {
-    backgroundColor: '#07522C',
-  },
-  progressSegmentInactive: {
-    backgroundColor: '#EAECF0',
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1D2939',
-    marginBottom: 16,
-  },
-  photoUploadCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    paddingVertical: 14,
-    marginBottom: 18,
-  },
-  photoUploadText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#07522C',
-  },
-  fieldLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#344054',
-    marginBottom: 6,
-    marginTop: 10,
-  },
-  inputContainer: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#D0D5DD',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    height: 48,
-    justifyContent: 'center',
-  },
-  multilineContainer: {
-    height: 70,
-    paddingVertical: 8,
-  },
-  textInput: {
-    fontSize: 15,
-    color: '#101828',
-    height: '100%',
-    padding: 0,
-  },
-  multilineInput: {
-    textAlignVertical: 'top',
-  },
-  helperText: {
-    fontSize: 12,
-    color: '#98A2B3',
-    marginTop: 4,
-  },
-  docUploadCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    padding: 14,
-    marginTop: 10,
-    marginBottom: 14,
-  },
-  docIcon: {
-    marginRight: 12,
-  },
-  docStatusTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1D2939',
-  },
-  docFileName: {
-    fontSize: 12,
-    color: '#667085',
-    marginTop: 2,
-  },
-  infoBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E7F4EB',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginTop: 14,
-  },
-  infoText: {
-    fontSize: 12,
-    color: '#07522C',
-    flex: 1,
-    lineHeight: 16,
-  },
-  bottomBar: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderTopWidth: 1,
-    borderTopColor: '#F2F4F7',
-    backgroundColor: '#FFFFFF',
-  },
-  step1BackHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  step1BackHeaderText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#07522C',
-  },
-  twoButtonRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  backBtn: {
-    flex: 1,
-    height: 48,
-    borderWidth: 1,
-    borderColor: '#D0D5DD',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  backBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#344054',
-  },
-  continueBtn: {
-    flex: 1,
-    height: 48,
-    backgroundColor: '#07522C',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  continueBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  step4SubmitWrapper: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  submitVerifyBtn: {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#07522C',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#07522C',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  submitVerifyBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  step4BackLink: {
-    marginTop: 14,
-    paddingVertical: 4,
-  },
-  step4BackText: {
-    fontSize: 14,
-    color: '#344054',
-    fontWeight: '600',
-  },
-  submittedContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  successCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: '#E7F4EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  submittedHeading: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1D2939',
-    textAlign: 'center',
-    marginBottom: 28,
-  },
-  referenceCard: {
-    width: '100%',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-  },
-  refRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  refLabel: {
-    fontSize: 13,
-    color: '#667085',
-  },
-  refValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1D2939',
-  },
-  submittedBottomBar: {
-    paddingHorizontal: 20,
-    paddingBottom: 24,
-  },
-});
 
 export default PartnerRegistrationScreen;

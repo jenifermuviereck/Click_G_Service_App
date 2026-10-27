@@ -3,15 +3,16 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
   ToastAndroid,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from '../../components/Icon';
+import UploadPickerModal, { PickedFile } from '../../components/UploadPickerModal';
 import { useJobs } from '../../context/JobContext';
 
 const CompleteServiceScreen = () => {
@@ -34,8 +35,11 @@ const CompleteServiceScreen = () => {
   };
 
   const [isCustomerChecked, setIsCustomerChecked] = useState(true);
-  const [beforePhotos, setBeforePhotos] = useState<string[]>(['photo-1', 'photo-2']);
-  const [afterPhotos, setAfterPhotos] = useState<string[]>(['photo-3', 'photo-4']);
+  const [beforePhotos, setBeforePhotos] = useState<string[]>([
+    'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&q=80',
+  ]);
+  const [afterPhotos, setAfterPhotos] = useState<string[]>([]);
+  const [uploadTarget, setUploadTarget] = useState<'before' | 'after' | null>(null);
 
   const showNotification = (msg: string) => {
     if (Platform.OS === 'android') {
@@ -45,8 +49,27 @@ const CompleteServiceScreen = () => {
     }
   };
 
-  const handleUploadPhoto = (type: 'before' | 'after') => {
-    showNotification(`Photo selected for ${type} service`);
+  const handlePhotoPicked = (file: PickedFile) => {
+    if (uploadTarget === 'before') {
+      if (beforePhotos.length < 3) {
+        setBeforePhotos(prev => [...prev, file.uri]);
+        showNotification('Before-service photo added');
+      }
+    } else if (uploadTarget === 'after') {
+      if (afterPhotos.length < 3) {
+        setAfterPhotos(prev => [...prev, file.uri]);
+        showNotification('After-service photo added');
+      }
+    }
+    setUploadTarget(null);
+  };
+
+  const handleRemovePhoto = (type: 'before' | 'after', index: number) => {
+    if (type === 'before') {
+      setBeforePhotos(prev => prev.filter((_, i) => i !== index));
+    } else {
+      setAfterPhotos(prev => prev.filter((_, i) => i !== index));
+    }
   };
 
   const handleSubmitCompletion = () => {
@@ -60,357 +83,186 @@ const CompleteServiceScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Top Header */}
-      <View style={styles.topHeader}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
-          <Icon name="arrow-left" size={22} color="#07522C" />
+    <SafeAreaView className="flex-1 bg-slate-50">
+      {/* Top Header - Left-aligned Title with Back Button */}
+      <View className="flex-row items-center px-4 py-3.5 bg-white border-b border-slate-100">
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          className="p-1.5 -ml-1 mr-3"
+          activeOpacity={0.7}>
+          <Icon name="arrow-left" size={24} color="#07522C" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Complete Service</Text>
-        <View style={{ width: 22 }} />
+        <Text className="text-lg sm:text-xl font-bold text-slate-900">Complete Service</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
         {/* Service Summary Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeaderRow}>
-            <Text style={styles.jobCategory}>{job.category}</Text>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusBadgeText}>Service finished</Text>
+        <View className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 shadow-sm">
+          <View className="flex-row justify-between items-center mb-1">
+            <Text className="text-base sm:text-lg font-bold text-slate-900">{job.category}</Text>
+            <View className="bg-emerald-100 px-2.5 py-0.5 rounded-full">
+              <Text className="text-[10px] sm:text-xs font-bold text-emerald-800">Service finished</Text>
             </View>
           </View>
 
-          <View style={styles.scheduledRow}>
+          <View className="flex-row justify-between pt-3 border-t border-slate-100">
             <View>
-              <Text style={styles.scheduleLabel}>Scheduled</Text>
-              <Text style={styles.scheduleValue}>{job.scheduledTime}</Text>
+              <Text className="text-[11px] text-slate-500 font-medium">Scheduled</Text>
+              <Text className="text-xs sm:text-sm font-bold text-slate-800">{job.scheduledTime}</Text>
             </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.earningsLabel}>Estimated earnings</Text>
-              <Text style={styles.earningsValue}>₹{(job.estimatedEarnings ?? 1200).toLocaleString()}</Text>
+            <View className="items-end">
+              <Text className="text-[11px] text-slate-500 font-medium">Estimated earnings</Text>
+              <Text className="text-sm sm:text-base font-extrabold text-brand-green">
+                ₹{(job.estimatedEarnings ?? 1200).toLocaleString()}
+              </Text>
             </View>
           </View>
         </View>
 
         {/* Before Completion Photos */}
-        <View style={styles.photoSection}>
-          <Text style={styles.photoSectionTitle}>Before Completion photo</Text>
-          <View style={styles.photoSlotsRow}>
-            <TouchableOpacity
-              style={styles.photoSlot}
-              activeOpacity={0.8}
-              onPress={() => handleUploadPhoto('before')}>
-              <Icon name="tray-arrow-up" size={20} color="#667085" />
-              <Text style={styles.photoSlotText}>Tap to upload</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.photoSlot}
-              activeOpacity={0.8}
-              onPress={() => handleUploadPhoto('before')}>
-              <Icon name="tray-arrow-up" size={20} color="#667085" />
-              <Text style={styles.photoSlotText}>Tap to upload</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.photoSlot, styles.addPhotoSlot]}
-              activeOpacity={0.8}
-              onPress={() => handleUploadPhoto('before')}>
-              <Icon name="plus" size={22} color="#667085" />
-              <Text style={styles.photoSlotText}>Add Images</Text>
-            </TouchableOpacity>
+        <View className="mb-4">
+          <Text className="text-xs sm:text-sm font-bold text-slate-800 mb-2.5">
+            Before Completion photo ({beforePhotos.length}/3)
+          </Text>
+          <View className="flex-row gap-2.5">
+            {[0, 1, 2].map(slotIdx => {
+              const photoUri = beforePhotos[slotIdx];
+              if (photoUri) {
+                return (
+                  <View
+                    key={slotIdx}
+                    className="flex-1 h-20 sm:h-24 rounded-xl border border-emerald-300 bg-white overflow-hidden relative">
+                    <Image source={{ uri: photoUri }} className="w-full h-full" resizeMode="cover" />
+                    <TouchableOpacity
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 items-center justify-center"
+                      onPress={() => handleRemovePhoto('before', slotIdx)}>
+                      <Icon name="close" size={12} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
+                );
+              }
+              return (
+                <TouchableOpacity
+                  key={slotIdx}
+                  className="flex-1 h-20 sm:h-24 rounded-xl border border-dashed border-slate-300 bg-white items-center justify-center p-2"
+                  activeOpacity={0.8}
+                  onPress={() => setUploadTarget('before')}>
+                  <Icon name="tray-arrow-up" size={20} color="#667085" />
+                  <Text className="text-[11px] text-slate-500 mt-1">Tap to upload</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
         {/* After Completion Photos */}
-        <View style={styles.photoSection}>
-          <Text style={styles.photoSectionTitle}>After Completion photo</Text>
-          <View style={styles.photoSlotsRow}>
-            <TouchableOpacity
-              style={styles.photoSlot}
-              activeOpacity={0.8}
-              onPress={() => handleUploadPhoto('after')}>
-              <Icon name="tray-arrow-up" size={20} color="#667085" />
-              <Text style={styles.photoSlotText}>Tap to upload</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.photoSlot}
-              activeOpacity={0.8}
-              onPress={() => handleUploadPhoto('after')}>
-              <Icon name="tray-arrow-up" size={20} color="#667085" />
-              <Text style={styles.photoSlotText}>Tap to upload</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.photoSlot, styles.addPhotoSlot]}
-              activeOpacity={0.8}
-              onPress={() => handleUploadPhoto('after')}>
-              <Icon name="plus" size={22} color="#667085" />
-              <Text style={styles.photoSlotText}>Add Images</Text>
-            </TouchableOpacity>
+        <View className="mb-4">
+          <Text className="text-xs sm:text-sm font-bold text-slate-800 mb-2.5">
+            After Completion photo ({afterPhotos.length}/3)
+          </Text>
+          <View className="flex-row gap-2.5">
+            {[0, 1, 2].map(slotIdx => {
+              const photoUri = afterPhotos[slotIdx];
+              if (photoUri) {
+                return (
+                  <View
+                    key={slotIdx}
+                    className="flex-1 h-20 sm:h-24 rounded-xl border border-emerald-300 bg-white overflow-hidden relative">
+                    <Image source={{ uri: photoUri }} className="w-full h-full" resizeMode="cover" />
+                    <TouchableOpacity
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 items-center justify-center"
+                      onPress={() => handleRemovePhoto('after', slotIdx)}>
+                      <Icon name="close" size={12} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
+                );
+              }
+              return (
+                <TouchableOpacity
+                  key={slotIdx}
+                  className="flex-1 h-20 sm:h-24 rounded-xl border border-dashed border-slate-300 bg-white items-center justify-center p-2"
+                  activeOpacity={0.8}
+                  onPress={() => setUploadTarget('after')}>
+                  <Icon name="tray-arrow-up" size={20} color="#667085" />
+                  <Text className="text-[11px] text-slate-500 mt-1">Tap to upload</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
         {/* Customer Verification Checkbox */}
         <TouchableOpacity
-          style={styles.checkboxRow}
+          className="flex-row items-center bg-white rounded-xl border border-slate-200 p-3.5 mb-4"
           activeOpacity={0.8}
           onPress={() => setIsCustomerChecked(!isCustomerChecked)}>
           <View
-            style={[
-              styles.checkboxBox,
-              isCustomerChecked && styles.checkboxBoxChecked,
-            ]}>
+            className={`w-5 h-5 rounded-md items-center justify-center mr-3 border ${
+              isCustomerChecked
+                ? 'bg-brand-green border-brand-green'
+                : 'bg-white border-slate-300'
+            }`}>
             {isCustomerChecked && <Icon name="check" size={14} color="#FFFFFF" />}
           </View>
-          <Text style={styles.checkboxLabel}>
+          <Text className="text-xs sm:text-[13px] font-medium text-slate-700 flex-1">
             Work completed and checked with customer
           </Text>
         </TouchableOpacity>
 
         {/* Price Breakdown Card */}
-        <View style={styles.card}>
-          <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>Gross Service Amount</Text>
-            <Text style={styles.breakdownValue}>₹{(job.grossAmount ?? 1500).toLocaleString()}</Text>
+        <View className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 shadow-sm">
+          <View className="flex-row justify-between py-1.5 border-b border-slate-100">
+            <Text className="text-xs sm:text-[13px] text-slate-600">Gross Service Amount</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-slate-900">
+              ₹{(job.grossAmount ?? 1500).toLocaleString()}
+            </Text>
           </View>
-          <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>Platform Commission (20%)</Text>
-            <Text style={styles.breakdownDeduction}>- ₹{(job.platformCommission ?? 300).toLocaleString()}</Text>
+          <View className="flex-row justify-between py-1.5 border-b border-slate-100">
+            <Text className="text-xs sm:text-[13px] text-slate-600">Platform Commission (20%)</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-red-600">
+              - ₹{(job.platformCommission ?? 300).toLocaleString()}
+            </Text>
           </View>
-          <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>Additional Charges</Text>
-            <Text style={styles.breakdownValue}>₹{(job.additionalCharges ?? 500).toLocaleString()}</Text>
+          <View className="flex-row justify-between py-1.5 border-b border-slate-100">
+            <Text className="text-xs sm:text-[13px] text-slate-600">Additional Charges</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-slate-900">
+              ₹{(job.additionalCharges ?? 500).toLocaleString()}
+            </Text>
           </View>
-          <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>GST 18%</Text>
-            <Text style={styles.breakdownValue}>₹{(job.gstAmount ?? 170).toLocaleString()}</Text>
+          <View className="flex-row justify-between py-1.5 border-b border-slate-100">
+            <Text className="text-xs sm:text-[13px] text-slate-600">GST 18%</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-slate-900">
+              ₹{(job.gstAmount ?? 170).toLocaleString()}
+            </Text>
           </View>
-          <View style={[styles.breakdownRow, styles.netEarningsRow]}>
-            <Text style={styles.netEarningsLabel}>Net Partner Earnings</Text>
-            <Text style={styles.netEarningsValue}>₹{(job.netEarnings ?? 1870).toLocaleString()}</Text>
+          <View className="flex-row justify-between pt-3">
+            <Text className="text-xs sm:text-sm font-bold text-brand-green">Net Partner Earnings</Text>
+            <Text className="text-sm sm:text-base font-extrabold text-brand-green">
+              ₹{(job.netEarnings ?? 1870).toLocaleString()}
+            </Text>
           </View>
         </View>
       </ScrollView>
 
       {/* Bottom Submit Completion Button */}
-      <View style={styles.bottomBar}>
+      <View className="p-4 bg-white border-t border-slate-100">
         <TouchableOpacity
-          style={styles.submitBtn}
+          className="bg-brand-green w-full h-12 rounded-xl items-center justify-center shadow-md shadow-brand-green/20"
           activeOpacity={0.88}
           onPress={handleSubmitCompletion}>
-          <Text style={styles.submitBtnText}>Submit Completion</Text>
+          <Text className="text-white text-[15px] font-bold">Submit Completion</Text>
         </TouchableOpacity>
       </View>
+
+      <UploadPickerModal
+        visible={uploadTarget !== null}
+        onClose={() => setUploadTarget(null)}
+        onPick={handlePhotoPicked}
+        title={uploadTarget === 'before' ? 'Upload Before-Service Photo' : 'Upload After-Service Photo'}
+        allowDocs={false}
+      />
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  topHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#07522C',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  jobCategory: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#1D2939',
-  },
-  statusBadge: {
-    backgroundColor: '#E7F4EB',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  statusBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#07522C',
-  },
-  scheduledRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#F2F4F7',
-  },
-  scheduleLabel: {
-    fontSize: 11,
-    color: '#667085',
-  },
-  scheduleValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1D2939',
-    marginTop: 2,
-  },
-  earningsLabel: {
-    fontSize: 11,
-    color: '#667085',
-  },
-  earningsValue: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#07522C',
-    marginTop: 2,
-  },
-  photoSection: {
-    marginBottom: 16,
-  },
-  photoSectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#344054',
-    marginBottom: 10,
-  },
-  photoSlotsRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  photoSlot: {
-    flex: 1,
-    height: 80,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#D0D5DD',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 6,
-  },
-  addPhotoSlot: {
-    backgroundColor: '#F9FAFB',
-    borderStyle: 'dashed',
-  },
-  photoSlotText: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#667085',
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingVertical: 4,
-  },
-  checkboxBox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: '#D0D5DD',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-    backgroundColor: '#FFFFFF',
-  },
-  checkboxBoxChecked: {
-    backgroundColor: '#07522C',
-    borderColor: '#07522C',
-  },
-  checkboxLabel: {
-    fontSize: 13,
-    color: '#344054',
-    fontWeight: '500',
-  },
-  breakdownRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-  },
-  breakdownLabel: {
-    fontSize: 13,
-    color: '#667085',
-  },
-  breakdownValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1D2939',
-  },
-  breakdownDeduction: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#D92D20',
-  },
-  netEarningsRow: {
-    borderTopWidth: 1,
-    borderTopColor: '#EAECF0',
-    marginTop: 6,
-    paddingTop: 12,
-  },
-  netEarningsLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1D2939',
-  },
-  netEarningsValue: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#07522C',
-  },
-  bottomBar: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#F2F4F7',
-  },
-  submitBtn: {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#07522C',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  submitBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-});
 
 export default CompleteServiceScreen;

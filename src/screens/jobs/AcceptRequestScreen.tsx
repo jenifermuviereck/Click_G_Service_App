@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
   Modal,
   Linking,
@@ -58,82 +57,88 @@ const AcceptRequestScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Top Header */}
-      <View style={styles.topHeader}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
-          <Icon name="arrow-left" size={22} color="#07522C" />
+    <SafeAreaView className="flex-1 bg-slate-50">
+      {/* Top Header - Left-aligned Title with Back Button */}
+      <View className="flex-row items-center px-4 py-3.5 bg-white border-b border-slate-100">
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          className="p-1.5 -ml-1 mr-3"
+          activeOpacity={0.7}>
+          <Icon name="arrow-left" size={24} color="#07522C" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Accept Request</Text>
-        <View style={{ width: 22 }} />
+        <Text className="text-lg sm:text-xl font-bold text-slate-900">Accept Request</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
         {/* Section Heading */}
-        <View style={styles.subHeader}>
-          <Text style={styles.subTitle}>New requests</Text>
-          <Text style={styles.subDesc}>Review the service details before accepting a job</Text>
+        <View className="mb-4">
+          <Text className="text-base sm:text-lg font-bold text-slate-900">New requests</Text>
+          <Text className="text-xs sm:text-[13px] text-slate-500 mt-0.5">
+            Review the service details before accepting a job
+          </Text>
         </View>
 
         {requests.length === 0 ? (
-          <View style={styles.emptyContainer}>
+          <View className="items-center justify-center py-16 px-4">
             <Icon name="checkbox-marked-circle-outline" size={48} color="#07522C" />
-            <Text style={styles.emptyTitle}>No pending requests</Text>
-            <Text style={styles.emptySubtitle}>All incoming service requests have been reviewed.</Text>
+            <Text className="text-base font-bold text-slate-800 mt-3 mb-1">No pending requests</Text>
+            <Text className="text-xs text-slate-500 text-center">
+              All incoming service requests have been reviewed.
+            </Text>
           </View>
         ) : (
           requests.map(item => (
-            <View key={item.id} style={styles.requestCard}>
+            <View key={item.id} className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 shadow-sm">
               {/* Card Top Row */}
-              <View style={styles.cardHeaderRow}>
-                <View style={styles.titleWithBadge}>
-                  <Text style={styles.categoryTitle}>{item.category}</Text>
-                  <View style={styles.distanceBadge}>
-                    <Text style={styles.distanceBadgeText}>{item.distanceKm}</Text>
+              <View className="flex-row justify-between items-center mb-1">
+                <View className="flex-row items-center flex-1 mr-2">
+                  <Text className="text-sm sm:text-base font-bold text-slate-900 mr-2">{item.category}</Text>
+                  <View className="bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    <Text className="text-[10px] sm:text-xs font-semibold text-emerald-800">{item.distanceKm}</Text>
                   </View>
                 </View>
-                <View style={styles.timeTag}>
-                  <Text style={styles.timeTagText}>{item.scheduledTime}</Text>
+                <View className="bg-slate-100 px-2.5 py-1 rounded-md">
+                  <Text className="text-[11px] font-semibold text-slate-600">{item.scheduledTime}</Text>
                 </View>
               </View>
 
               {/* Area location */}
-              <Text style={styles.locationText}>{item.locationArea}</Text>
+              <Text className="text-xs text-slate-500 mb-3">{item.locationArea}</Text>
 
               {/* Customer Row */}
-              <View style={styles.customerRow}>
-                <View style={styles.customerAvatar}>
-                  <Text style={styles.customerAvatarText}>{item.customerInitials}</Text>
+              <View className="flex-row items-center bg-slate-50 rounded-xl p-3 mb-3 border border-slate-100">
+                <View className="w-9 h-9 rounded-full bg-brand-lightGreen items-center justify-center mr-2.5">
+                  <Text className="text-xs font-bold text-brand-green">{item.customerInitials}</Text>
                 </View>
-                <View style={styles.customerInfoCol}>
-                  <Text style={styles.customerName}>{item.customerName}</Text>
-                  <Text style={styles.customerPhone}>{item.customerPhone}</Text>
+                <View className="flex-1">
+                  <Text className="text-xs sm:text-sm font-bold text-slate-800">{item.customerName}</Text>
+                  <Text className="text-[11px] text-slate-500">{item.customerPhone}</Text>
                 </View>
                 <TouchableOpacity
-                  style={styles.callIconBtn}
+                  className="w-8 h-8 rounded-full bg-white border border-slate-200 items-center justify-center shadow-xs"
                   activeOpacity={0.8}
                   onPress={() => handleCall(item.customerPhone)}>
-                  <Icon name="phone-outline" size={18} color="#07522C" />
+                  <Icon name="phone-outline" size={16} color="#07522C" />
                 </TouchableOpacity>
               </View>
 
               {/* Description */}
-              <Text style={styles.descriptionText}>{item.description}</Text>
+              <Text className="text-xs text-slate-600 mb-4 leading-4">{item.description}</Text>
 
               {/* Actions Row: Reject / Accept Job */}
-              <View style={styles.cardActionRow}>
+              <View className="flex-row gap-2.5">
                 <TouchableOpacity
-                  style={styles.rejectBtn}
+                  className="flex-1 h-11 rounded-xl border border-red-200 bg-red-50/60 items-center justify-center"
                   activeOpacity={0.8}
                   onPress={() => handleOpenRejectModal(item)}>
-                  <Text style={styles.rejectBtnText}>Reject</Text>
+                  <Text className="text-xs sm:text-sm font-bold text-red-600">Reject</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.acceptJobBtn}
+                  className="flex-1 h-11 rounded-xl bg-brand-green items-center justify-center shadow-sm"
                   activeOpacity={0.88}
                   onPress={() => handleAccept(item)}>
-                  <Text style={styles.acceptJobBtnText}>Accept Job</Text>
+                  <Text className="text-xs sm:text-sm font-bold text-white">Accept Job</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -141,43 +146,40 @@ const AcceptRequestScreen = () => {
         )}
       </ScrollView>
 
-      {/* Reject Confirmation Modal (Screen 3 of Image 3) */}
+      {/* Reject Confirmation Modal */}
       <Modal
         visible={rejectModalVisible}
         transparent
         animationType="fade"
         onRequestClose={() => setRejectModalVisible(false)}>
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            {/* Close Cross */}
+        <View className="flex-1 bg-black/50 items-center justify-center p-5">
+          <View className="w-full max-w-sm bg-white rounded-3xl p-6 relative shadow-xl">
             <TouchableOpacity
-              style={styles.modalCloseBtn}
+              className="absolute top-4 right-4 p-1"
               onPress={() => setRejectModalVisible(false)}>
-              <Icon name="close" size={20} color="#D92D20" />
+              <Icon name="close" size={20} color="#667085" />
             </TouchableOpacity>
 
-            <Text style={styles.modalTitle}>Reject this request?</Text>
-            <Text style={styles.modalSubtitle}>
+            <Text className="text-lg font-bold text-slate-900 mb-1">Reject this request?</Text>
+            <Text className="text-xs font-semibold text-brand-green mb-2">
               {selectedJobToReject?.category} • {selectedJobToReject?.bookingRef}
             </Text>
-            <Text style={styles.modalMessage}>
+            <Text className="text-xs sm:text-[13px] text-slate-500 mb-6 leading-5">
               This request will be removed from your list. You won't be assigned this job.
             </Text>
 
-            {/* Confirm Reject Button */}
             <TouchableOpacity
-              style={styles.confirmRejectBtn}
+              className="bg-red-600 w-full h-12 rounded-xl items-center justify-center mb-2.5 shadow-sm"
               activeOpacity={0.85}
               onPress={handleConfirmReject}>
-              <Text style={styles.confirmRejectBtnText}>Confirm</Text>
+              <Text className="text-white text-sm font-bold">Confirm</Text>
             </TouchableOpacity>
 
-            {/* Cancel Button */}
             <TouchableOpacity
-              style={styles.cancelLinkBtn}
+              className="w-full h-11 items-center justify-center rounded-xl"
               activeOpacity={0.7}
               onPress={() => setRejectModalVisible(false)}>
-              <Text style={styles.cancelLinkText}>Cancel</Text>
+              <Text className="text-slate-600 text-xs sm:text-sm font-bold">Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -188,263 +190,5 @@ const AcceptRequestScreen = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  topHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#07522C',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  subHeader: {
-    marginBottom: 16,
-  },
-  subTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1D2939',
-  },
-  subDesc: {
-    fontSize: 12,
-    color: '#667085',
-    marginTop: 2,
-  },
-  requestCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  titleWithBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  categoryTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1D2939',
-  },
-  distanceBadge: {
-    backgroundColor: '#E7F4EB',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-  },
-  distanceBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#07522C',
-  },
-  timeTag: {
-    backgroundColor: '#F2F4F7',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  timeTagText: {
-    fontSize: 11,
-    color: '#667085',
-    fontWeight: '500',
-  },
-  locationText: {
-    fontSize: 12,
-    color: '#667085',
-    marginBottom: 12,
-  },
-  customerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  customerAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#E7F4EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  customerAvatarText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#07522C',
-  },
-  customerInfoCol: {
-    flex: 1,
-  },
-  customerName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1D2939',
-  },
-  customerPhone: {
-    fontSize: 12,
-    color: '#667085',
-  },
-  callIconBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: '#D0D5DD',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  descriptionText: {
-    fontSize: 13,
-    color: '#344054',
-    lineHeight: 18,
-    marginBottom: 16,
-  },
-  cardActionRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  rejectBtn: {
-    flex: 1,
-    height: 44,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#D0D5DD',
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rejectBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#344054',
-  },
-  acceptJobBtn: {
-    flex: 2,
-    height: 44,
-    borderRadius: 10,
-    backgroundColor: '#07522C',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  acceptJobBtnText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1D2939',
-    marginTop: 12,
-  },
-  emptySubtitle: {
-    fontSize: 13,
-    color: '#667085',
-    marginTop: 4,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  modalCard: {
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 22,
-    alignItems: 'center',
-    position: 'relative',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  modalCloseBtn: {
-    position: 'absolute',
-    top: 14,
-    right: 14,
-    padding: 6,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1D2939',
-    marginTop: 10,
-    marginBottom: 6,
-  },
-  modalSubtitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#667085',
-    marginBottom: 10,
-  },
-  modalMessage: {
-    fontSize: 13,
-    color: '#667085',
-    textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 20,
-  },
-  confirmRejectBtn: {
-    width: '100%',
-    height: 48,
-    backgroundColor: '#D92D20',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  confirmRejectBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  cancelLinkBtn: {
-    paddingVertical: 8,
-  },
-  cancelLinkText: {
-    fontSize: 14,
-    color: '#344054',
-    fontWeight: '600',
-  },
-});
 
 export default AcceptRequestScreen;

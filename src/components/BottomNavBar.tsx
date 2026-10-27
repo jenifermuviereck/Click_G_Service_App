@@ -1,16 +1,23 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Icon from './Icon';
 
 interface BottomNavBarProps {
   currentTab?: 'Home' | 'Jobs' | 'Earnings' | 'Profile';
+  onTabChange?: (tab: 'Home' | 'Jobs' | 'Earnings' | 'Profile') => void;
 }
 
-const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab = 'Home' }) => {
+const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab = 'Home', onTabChange }) => {
   const navigation = useNavigation<any>();
 
-  const tabs = [
+  const tabs: Array<{
+    name: 'Home' | 'Jobs' | 'Earnings' | 'Profile';
+    label: string;
+    icon: string;
+    activeIcon: string;
+    route: string;
+  }> = [
     { name: 'Home', label: 'Home', icon: 'home-variant-outline', activeIcon: 'home-variant', route: 'Home' },
     { name: 'Jobs', label: 'Jobs', icon: 'briefcase-outline', activeIcon: 'briefcase', route: 'MyJobs' },
     { name: 'Earnings', label: 'Earnings', icon: 'credit-card-outline', activeIcon: 'credit-card', route: 'Earnings' },
@@ -18,16 +25,18 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab = 'Home' }) => {
   ];
 
   return (
-    <View style={styles.container}>
+    <View className="flex-row h-14 sm:h-16 bg-white border-t border-brand-border items-center justify-around px-2">
       {tabs.map(tab => {
         const isActive = currentTab === tab.name;
         return (
           <TouchableOpacity
             key={tab.name}
-            style={styles.tabItem}
+            className="items-center justify-center flex-1 py-1.5"
             activeOpacity={0.7}
             onPress={() => {
-              if (!isActive) {
+              if (onTabChange) {
+                onTabChange(tab.name);
+              } else if (!isActive) {
                 navigation.navigate(tab.route);
               }
             }}>
@@ -36,7 +45,10 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab = 'Home' }) => {
               size={22}
               color={isActive ? '#07522C' : '#98A2B3'}
             />
-            <Text style={[styles.tabLabel, isActive && styles.activeTabLabel]}>
+            <Text
+              className={`text-[11px] sm:text-xs mt-1 ${
+                isActive ? 'text-brand-green font-bold' : 'text-slate-400 font-medium'
+              }`}>
               {tab.label}
             </Text>
           </TouchableOpacity>
@@ -45,34 +57,5 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab = 'Home' }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    height: 60,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#EAECF0',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 8,
-  },
-  tabItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingVertical: 6,
-  },
-  tabLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: '#98A2B3',
-    marginTop: 3,
-  },
-  activeTabLabel: {
-    color: '#07522C',
-    fontWeight: '700',
-  },
-});
 
 export default BottomNavBar;

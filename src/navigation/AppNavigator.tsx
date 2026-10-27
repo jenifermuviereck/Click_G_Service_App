@@ -6,7 +6,7 @@ import { ActivityIndicator, View } from 'react-native';
 import LoginScreen from '../screens/auth/LoginScreen';
 import OtpVerificationScreen from '../screens/auth/OtpVerificationScreen';
 import PartnerRegistrationScreen from '../screens/auth/PartnerRegistrationScreen';
-import HomeScreen from '../screens/dashboard/HomeScreen';
+import MainTabsScreen from '../screens/dashboard/MainTabsScreen';
 import AcceptRequestScreen from '../screens/jobs/AcceptRequestScreen';
 import MyJobsScreen from '../screens/jobs/MyJobsScreen';
 import ActiveJobScreen from '../screens/jobs/ActiveJobScreen';
@@ -55,21 +55,24 @@ const AppNavigator = () => {
         <Stack.Screen name="OtpVerification" component={OtpVerificationScreen} />
         <Stack.Screen name="PartnerRegistration" component={PartnerRegistrationScreen} />
 
-        {/* Dashboard & Jobs Flows */}
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="MyJobs" component={MyJobsScreen} />
+        {/* Dashboard Main Tabs (Static Bottom Bar, No Slide) */}
+        <Stack.Screen name="MainTabs" component={MainTabsScreen} />
+        <Stack.Screen name="Home" component={MainTabsScreen} />
+        <Stack.Screen name="MyJobs" component={MainTabsScreen} />
+        <Stack.Screen name="Earnings" component={MainTabsScreen} />
+        <Stack.Screen name="Profile" component={MainTabsScreen} />
+
+        {/* Jobs Detail Flows */}
         <Stack.Screen name="AcceptRequest" component={AcceptRequestScreen} />
         <Stack.Screen name="ActiveJob" component={ActiveJobScreen} />
         <Stack.Screen name="CompleteService" component={CompleteServiceScreen} />
         <Stack.Screen name="CompletionConfirmed" component={CompletionConfirmedScreen} />
         <Stack.Screen name="JobSummary" component={JobSummaryScreen} />
 
-        {/* Earnings & Transactions */}
-        <Stack.Screen name="Earnings" component={EarningsScreen} />
+        {/* Earnings Details */}
         <Stack.Screen name="TransactionDetails" component={TransactionDetailsScreen} />
 
         {/* Profile & Settings Sub-screens */}
-        <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="PersonalDetails" component={PersonalDetailsScreen} />
         <Stack.Screen name="DocumentsVerification" component={DocumentsVerificationScreen} />
         <Stack.Screen name="BankDetails" component={BankDetailsScreen} />

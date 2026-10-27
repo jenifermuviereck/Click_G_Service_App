@@ -3,16 +3,21 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import Icon from '../../components/Icon';
 import BottomNavBar from '../../components/BottomNavBar';
 
 type JobTab = 'Upcoming' | 'Ongoing' | 'Completed';
 
-const MyJobsScreen = () => {
+interface MyJobsScreenProps {
+  hideBottomNav?: boolean;
+  onBackToHome?: () => void;
+}
+
+const MyJobsScreen: React.FC<MyJobsScreenProps> = ({ hideBottomNav = false, onBackToHome }) => {
   const navigation = useNavigation<any>();
   const [activeTab, setActiveTab] = useState<JobTab>('Upcoming');
 
@@ -109,24 +114,35 @@ const MyJobsScreen = () => {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Top Header */}
-      <View style={styles.topHeader}>
-        <Text style={styles.headerTitle}>My Jobs</Text>
+    <SafeAreaView className="flex-1 bg-slate-50" edges={['left', 'right']}>
+      {/* Top Header - Left-aligned Title with Back Button */}
+      <View className="flex-row items-center px-4 py-3.5 bg-white border-b border-slate-100">
+        <TouchableOpacity
+          onPress={() => (onBackToHome ? onBackToHome() : (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Home')))}
+          className="p-1.5 -ml-1 mr-3"
+          activeOpacity={0.7}>
+          <Icon name="arrow-left" size={24} color="#07522C" />
+        </TouchableOpacity>
+        <Text className="text-lg sm:text-xl font-bold text-slate-900">My Jobs</Text>
       </View>
 
-      <View style={styles.contentWrapper}>
-        {/* 3 Tabs */}
-        <View style={styles.tabBar}>
+      <View className="flex-1">
+        {/* 3 Segmented Tabs */}
+        <View className="flex-row bg-slate-200/70 p-1 rounded-xl mx-4 sm:mx-5 my-3">
           {(['Upcoming', 'Ongoing', 'Completed'] as JobTab[]).map(tab => {
             const isSelected = activeTab === tab;
             return (
               <TouchableOpacity
                 key={tab}
-                style={[styles.tabBtn, isSelected && styles.tabBtnActive]}
+                className={`flex-1 py-2 items-center justify-center rounded-lg ${
+                  isSelected ? 'bg-white shadow-sm' : ''
+                }`}
                 activeOpacity={0.8}
                 onPress={() => setActiveTab(tab)}>
-                <Text style={[styles.tabBtnText, isSelected && styles.tabBtnTextActive]}>
+                <Text
+                  className={`text-xs sm:text-[13px] ${
+                    isSelected ? 'font-bold text-brand-green' : 'font-medium text-slate-600'
+                  }`}>
                   {tab}
                 </Text>
               </TouchableOpacity>
@@ -134,37 +150,39 @@ const MyJobsScreen = () => {
           })}
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="p-4 sm:p-5 pt-1 pb-6">
           {/* Upcoming Tab */}
           {activeTab === 'Upcoming' && (
             <View>
-              <Text style={styles.subheadCountText}>
+              <Text className="text-xs font-semibold text-slate-500 mb-3">
                 {upcomingJobs.length} scheduled {upcomingJobs.length === 1 ? 'job' : 'jobs'}
               </Text>
 
               {upcomingJobs.map(job => (
-                <View key={job.id} style={styles.card}>
-                  <View style={styles.cardHeaderRow}>
-                    <Text style={styles.jobTitle}>{job.title}</Text>
-                    <View style={styles.upcomingBadge}>
-                      <Text style={styles.upcomingBadgeText}>{job.badge}</Text>
+                <View key={job.id} className="bg-white rounded-2xl border border-slate-200 p-4 mb-3 shadow-sm">
+                  <View className="flex-row justify-between items-center mb-1">
+                    <Text className="text-sm sm:text-base font-bold text-slate-900 flex-1 mr-2">{job.title}</Text>
+                    <View className="bg-blue-100 px-2.5 py-0.5 rounded-full">
+                      <Text className="text-[10px] sm:text-xs font-bold text-blue-800">{job.badge}</Text>
                     </View>
                   </View>
 
-                  <Text style={styles.jobAreaText}>
+                  <Text className="text-xs text-slate-500 mb-3">
                     {job.bookingRef} • {job.area}
                   </Text>
 
-                  <View style={styles.timePriceRow}>
-                    <Text style={styles.jobTimeText}>{job.timeStr}</Text>
-                    <Text style={styles.jobPriceText}>₹{(job.price ?? 0).toLocaleString()}</Text>
+                  <View className="flex-row justify-between items-center pt-2 mb-3 border-t border-slate-100">
+                    <Text className="text-xs text-slate-600">{job.timeStr}</Text>
+                    <Text className="text-sm sm:text-base font-extrabold text-slate-900">
+                      ₹{(job.price ?? 0).toLocaleString()}
+                    </Text>
                   </View>
 
                   <TouchableOpacity
-                    style={styles.actionBtn}
+                    className="bg-brand-green w-full h-11 rounded-xl items-center justify-center shadow-sm"
                     activeOpacity={0.85}
                     onPress={() => navigation.navigate('ActiveJob', { job })}>
-                    <Text style={styles.actionBtnText}>View Details</Text>
+                    <Text className="text-white text-xs sm:text-sm font-bold">View Details</Text>
                   </TouchableOpacity>
                 </View>
               ))}
@@ -174,33 +192,35 @@ const MyJobsScreen = () => {
           {/* Ongoing Tab */}
           {activeTab === 'Ongoing' && (
             <View>
-              <Text style={styles.subheadCountText}>
+              <Text className="text-xs font-semibold text-slate-500 mb-3">
                 {ongoingJobs.length} service in progress
               </Text>
 
               {ongoingJobs.map(job => (
-                <View key={job.id} style={styles.card}>
-                  <View style={styles.cardHeaderRow}>
-                    <Text style={styles.jobTitle}>{job.title}</Text>
-                    <View style={styles.serviceStartedBadge}>
-                      <Text style={styles.serviceStartedBadgeText}>{job.badge}</Text>
+                <View key={job.id} className="bg-white rounded-2xl border border-slate-200 p-4 mb-3 shadow-sm">
+                  <View className="flex-row justify-between items-center mb-1">
+                    <Text className="text-sm sm:text-base font-bold text-slate-900 flex-1 mr-2">{job.title}</Text>
+                    <View className="bg-amber-100 px-2.5 py-0.5 rounded-full">
+                      <Text className="text-[10px] sm:text-xs font-bold text-amber-800">{job.badge}</Text>
                     </View>
                   </View>
 
-                  <Text style={styles.jobAreaText}>
+                  <Text className="text-xs text-slate-500 mb-3">
                     {job.bookingRef} • {job.area}
                   </Text>
 
-                  <View style={styles.timePriceRow}>
-                    <Text style={styles.jobTimeText}>{job.timeStr}</Text>
-                    <Text style={styles.jobPriceText}>₹{(job.price ?? 0).toLocaleString()}</Text>
+                  <View className="flex-row justify-between items-center pt-2 mb-3 border-t border-slate-100">
+                    <Text className="text-xs text-slate-600">{job.timeStr}</Text>
+                    <Text className="text-sm sm:text-base font-extrabold text-slate-900">
+                      ₹{(job.price ?? 0).toLocaleString()}
+                    </Text>
                   </View>
 
                   <TouchableOpacity
-                    style={styles.actionBtn}
+                    className="bg-brand-green w-full h-11 rounded-xl items-center justify-center shadow-sm"
                     activeOpacity={0.85}
                     onPress={() => navigation.navigate('CompleteService', { job })}>
-                    <Text style={styles.actionBtnText}>Continue Job</Text>
+                    <Text className="text-white text-xs sm:text-sm font-bold">Continue Job</Text>
                   </TouchableOpacity>
                 </View>
               ))}
@@ -210,33 +230,35 @@ const MyJobsScreen = () => {
           {/* Completed Tab */}
           {activeTab === 'Completed' && (
             <View>
-              <Text style={styles.subheadCountText}>
+              <Text className="text-xs font-semibold text-slate-500 mb-3">
                 {completedJobs.length} completed today
               </Text>
 
               {completedJobs.map(job => (
-                <View key={job.id} style={styles.card}>
-                  <View style={styles.cardHeaderRow}>
-                    <Text style={styles.jobTitle}>{job.title}</Text>
-                    <View style={styles.completedBadge}>
-                      <Text style={styles.completedBadgeText}>{job.badge}</Text>
+                <View key={job.id} className="bg-white rounded-2xl border border-slate-200 p-4 mb-3 shadow-sm">
+                  <View className="flex-row justify-between items-center mb-1">
+                    <Text className="text-sm sm:text-base font-bold text-slate-900 flex-1 mr-2">{job.title}</Text>
+                    <View className="bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                      <Text className="text-[10px] sm:text-xs font-bold text-emerald-800">{job.badge}</Text>
                     </View>
                   </View>
 
-                  <Text style={styles.jobAreaText}>
+                  <Text className="text-xs text-slate-500 mb-3">
                     {job.bookingRef} • {job.area}
                   </Text>
 
-                  <View style={styles.timePriceRow}>
-                    <Text style={styles.jobTimeText}>{job.timeStr}</Text>
-                    <Text style={styles.jobPriceText}>₹{(job.price ?? 0).toLocaleString()}</Text>
+                  <View className="flex-row justify-between items-center pt-2 mb-3 border-t border-slate-100">
+                    <Text className="text-xs text-slate-600">{job.timeStr}</Text>
+                    <Text className="text-sm sm:text-base font-extrabold text-slate-900">
+                      ₹{(job.price ?? 0).toLocaleString()}
+                    </Text>
                   </View>
 
                   <TouchableOpacity
-                    style={styles.actionBtn}
+                    className="bg-brand-green w-full h-11 rounded-xl items-center justify-center shadow-sm"
                     activeOpacity={0.85}
                     onPress={() => navigation.navigate('JobSummary', { job })}>
-                    <Text style={styles.actionBtnText}>View Summary</Text>
+                    <Text className="text-white text-xs sm:text-sm font-bold">View Summary</Text>
                   </TouchableOpacity>
                 </View>
               ))}
@@ -246,162 +268,9 @@ const MyJobsScreen = () => {
       </View>
 
       {/* Bottom Nav */}
-      <BottomNavBar currentTab="Jobs" />
+      {!hideBottomNav && <BottomNavBar currentTab="Jobs" />}
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  topHeader: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#07522C',
-  },
-  contentWrapper: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-  },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#F2F4F7',
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 16,
-  },
-  tabBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-  },
-  tabBtnActive: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  tabBtnText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#667085',
-  },
-  tabBtnTextActive: {
-    fontWeight: '700',
-    color: '#07522C',
-  },
-  scrollContent: {
-    paddingBottom: 24,
-  },
-  subheadCountText: {
-    fontSize: 12,
-    color: '#667085',
-    marginBottom: 12,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    padding: 16,
-    marginBottom: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  jobTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1D2939',
-  },
-  upcomingBadge: {
-    backgroundColor: '#E7F4EB',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  upcomingBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#07522C',
-  },
-  serviceStartedBadge: {
-    backgroundColor: '#E7F4EB',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  serviceStartedBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#07522C',
-  },
-  completedBadge: {
-    backgroundColor: '#E7F4EB',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  completedBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#07522C',
-  },
-  jobAreaText: {
-    fontSize: 12,
-    color: '#667085',
-    marginBottom: 10,
-  },
-  timePriceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  jobTimeText: {
-    fontSize: 12,
-    color: '#667085',
-  },
-  jobPriceText: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#1D2939',
-  },
-  actionBtn: {
-    width: '100%',
-    height: 44,
-    backgroundColor: '#07522C',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionBtnText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-});
 
 export default MyJobsScreen;

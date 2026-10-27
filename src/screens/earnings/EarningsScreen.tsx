@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,7 +11,12 @@ import Icon from '../../components/Icon';
 import BottomNavBar from '../../components/BottomNavBar';
 import { mockEarningsSummary, mockTransactions } from '../../data/mockData';
 
-const EarningsScreen = () => {
+interface EarningsScreenProps {
+  hideBottomNav?: boolean;
+  onBackToHome?: () => void;
+}
+
+const EarningsScreen: React.FC<EarningsScreenProps> = ({ hideBottomNav = false, onBackToHome }) => {
   const navigation = useNavigation<any>();
   const [summary] = useState(mockEarningsSummary);
   const [transactions] = useState(mockTransactions);
@@ -22,45 +26,50 @@ const EarningsScreen = () => {
   const timeframeOptions = ['Weekly', 'Monthly', 'Year', '5 Years', 'Life Time'];
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Top Header */}
-      <View style={styles.topHeader}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
-          <Icon name="arrow-left" size={22} color="#07522C" />
+    <SafeAreaView className="flex-1 bg-slate-50" edges={['left', 'right']}>
+      {/* Top Header - Left-aligned Title with Back Button */}
+      <View className="flex-row items-center px-4 py-3.5 bg-white border-b border-slate-100">
+        <TouchableOpacity
+          onPress={() => (onBackToHome ? onBackToHome() : (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Home')))}
+          className="p-1.5 -ml-1 mr-3"
+          activeOpacity={0.7}>
+          <Icon name="arrow-left" size={24} color="#07522C" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Earnings &amp; Payments</Text>
-        <View style={{ width: 22 }} />
+        <Text className="text-lg sm:text-xl font-bold text-slate-900">Earnings & Payments</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
         {/* Top 3 Summary Cards */}
-        <View style={styles.summaryCardsRow}>
+        <View className="flex-row gap-2 sm:gap-3 mb-4">
           {/* Today / Component 22 */}
-          <View style={[styles.summaryCard, { zIndex: 999 }]}>
-            <View style={styles.summaryCardHeader}>
-              <Text style={styles.summaryCardLabel}>{selectedTimeframe}</Text>
+          <View className="flex-1 bg-white rounded-2xl border border-slate-200 p-3 shadow-sm relative z-50">
+            <View className="flex-row items-center justify-between mb-1.5">
+              <Text className="text-[11px] sm:text-xs text-slate-500 font-medium" numberOfLines={1}>
+                {selectedTimeframe}
+              </Text>
               <TouchableOpacity
                 onPress={() => setMenuOpen(!menuOpen)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Icon name="dots-vertical" size={16} color="#667085" />
               </TouchableOpacity>
             </View>
-            <Text style={styles.summaryCardAmount}>₹{summary.todayTotal.toLocaleString()}</Text>
+            <Text className="text-sm sm:text-base font-extrabold text-slate-900">
+              ₹{summary.todayTotal.toLocaleString()}
+            </Text>
 
             {menuOpen && (
-              <View style={styles.component22Menu}>
+              <View className="absolute top-12 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-lg z-50">
                 {timeframeOptions.map((opt, i) => (
                   <TouchableOpacity
                     key={opt}
-                    style={[
-                      styles.component22MenuItem,
-                      i === timeframeOptions.length - 1 && { borderBottomWidth: 0 },
-                    ]}
+                    className={`px-3 py-2 ${
+                      i !== timeframeOptions.length - 1 ? 'border-b border-slate-100' : ''
+                    }`}
                     onPress={() => {
                       setSelectedTimeframe(opt);
                       setMenuOpen(false);
                     }}>
-                    <Text style={styles.component22MenuText}>{opt}</Text>
+                    <Text className="text-xs text-slate-700 font-medium">{opt}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -68,62 +77,72 @@ const EarningsScreen = () => {
           </View>
 
           {/* This month */}
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryCardHeader}>
-              <Text style={styles.summaryCardLabel}>This month</Text>
+          <View className="flex-1 bg-white rounded-2xl border border-slate-200 p-3 shadow-sm">
+            <View className="flex-row items-center justify-between mb-1.5">
+              <Text className="text-[11px] sm:text-xs text-slate-500 font-medium" numberOfLines={1}>
+                This month
+              </Text>
             </View>
-            <Text style={styles.summaryCardAmount}>₹{summary.thisMonthTotal.toLocaleString()}</Text>
+            <Text className="text-sm sm:text-base font-extrabold text-slate-900">
+              ₹{summary.thisMonthTotal.toLocaleString()}
+            </Text>
           </View>
 
           {/* Pending Payments */}
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryCardHeader}>
-              <Text style={styles.summaryCardLabel}>Pending Payments</Text>
+          <View className="flex-1 bg-white rounded-2xl border border-slate-200 p-3 shadow-sm">
+            <View className="flex-row items-center justify-between mb-1.5">
+              <Text className="text-[11px] sm:text-xs text-slate-500 font-medium" numberOfLines={1}>
+                Pending
+              </Text>
             </View>
-            <Text style={styles.summaryCardAmount}>₹{summary.pendingTotal.toLocaleString()}</Text>
+            <Text className="text-sm sm:text-base font-extrabold text-amber-700">
+              ₹{summary.pendingTotal.toLocaleString()}
+            </Text>
           </View>
         </View>
 
         {/* Today's Earnings Breakdown Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardHeading}>Today's earnings breakdown</Text>
+        <View className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 shadow-sm">
+          <Text className="text-sm sm:text-base font-bold text-slate-900 mb-3">Today's earnings breakdown</Text>
 
-          <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>Gross Service Amount</Text>
-            <Text style={styles.breakdownValue}>
+          <View className="flex-row justify-between py-1.5 border-b border-slate-100">
+            <Text className="text-xs sm:text-[13px] text-slate-600">Gross Service Amount</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-slate-900">
               ₹{summary.grossServiceAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </Text>
           </View>
 
-          <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>
+          <View className="flex-row justify-between py-1.5 border-b border-slate-100">
+            <Text className="text-xs sm:text-[13px] text-slate-600">
               Platform Commission ({summary.platformCommissionRate}%)
             </Text>
-            <Text style={styles.breakdownDeduction}>
+            <Text className="text-xs sm:text-[13px] font-semibold text-red-600">
               - ₹{summary.platformCommissionAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </Text>
           </View>
 
-          <View style={[styles.breakdownRow, styles.netRow]}>
-            <Text style={styles.netLabel}>Net Partner Earnings</Text>
-            <Text style={styles.netValue}>₹{summary.netPartnerEarnings.toLocaleString()}</Text>
+          <View className="flex-row justify-between pt-3 pb-1">
+            <Text className="text-xs sm:text-sm font-bold text-brand-green">Net Partner Earnings</Text>
+            <Text className="text-sm sm:text-base font-extrabold text-brand-green">
+              ₹{summary.netPartnerEarnings.toLocaleString()}
+            </Text>
           </View>
 
-          <Text style={styles.completedSubtext}>
+          <Text className="text-[11px] text-slate-400 mt-2">
             {summary.completedJobsCount} completed jobs • Includes the latest ₹1,200 job
           </Text>
         </View>
 
         {/* Transactions Section */}
-        <View style={styles.transactionsHeaderRow}>
-          <Text style={styles.transactionsSectionTitle}>Transactions</Text>
-          <Text style={styles.transactionDateFilter}>Today</Text>
+        <View className="flex-row items-center justify-between mb-3 mt-1">
+          <Text className="text-base font-bold text-slate-900">Transactions</Text>
+          <Text className="text-xs font-semibold text-brand-green">Today</Text>
         </View>
 
         {transactions.map(item => (
           <TouchableOpacity
             key={item.id}
-            style={styles.transactionCard}
+            className="flex-row items-center justify-between bg-white rounded-2xl border border-slate-200 p-4 mb-3 shadow-sm active:scale-[0.99]"
             activeOpacity={0.8}
             onPress={() =>
               navigation.navigate('TransactionDetails', {
@@ -143,25 +162,25 @@ const EarningsScreen = () => {
                 },
               })
             }>
-            <View style={styles.transactionLeft}>
-              <Text style={styles.txTitle}>{item.title}</Text>
-              <Text style={styles.txDetails}>
+            <View className="flex-1 mr-3">
+              <Text className="text-sm font-bold text-slate-900 mb-1">{item.title}</Text>
+              <Text className="text-xs text-slate-500">
                 {item.bookingRef} • {item.dateStr} • {item.timeStr}
               </Text>
             </View>
 
-            <View style={styles.transactionRight}>
-              <Text style={styles.txAmount}>₹{item.amount.toLocaleString()}</Text>
+            <View className="items-end">
+              <Text className="text-sm sm:text-base font-extrabold text-slate-900 mb-1.5">
+                ₹{item.amount.toLocaleString()}
+              </Text>
               <View
-                style={[
-                  styles.txStatusPill,
-                  item.status === 'Paid' ? styles.txStatusPaid : styles.txStatusPending,
-                ]}>
+                className={`px-2.5 py-0.5 rounded-full ${
+                  item.status === 'Paid' ? 'bg-emerald-100' : 'bg-amber-100'
+                }`}>
                 <Text
-                  style={[
-                    styles.txStatusText,
-                    item.status === 'Paid' ? styles.txStatusTextPaid : styles.txStatusTextPending,
-                  ]}>
+                  className={`text-[10px] sm:text-xs font-bold ${
+                    item.status === 'Paid' ? 'text-emerald-800' : 'text-amber-800'
+                  }`}>
                   {item.status}
                 </Text>
               </View>
@@ -171,231 +190,9 @@ const EarningsScreen = () => {
       </ScrollView>
 
       {/* Bottom Nav Bar */}
-      <BottomNavBar currentTab="Earnings" />
+      {!hideBottomNav && <BottomNavBar currentTab="Earnings" />}
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  topHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#07522C',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  summaryCardsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16,
-  },
-  summaryCard: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    padding: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  summaryCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    height: 28,
-  },
-  summaryCardLabel: {
-    fontSize: 11,
-    color: '#667085',
-    flex: 1,
-  },
-  component22Menu: {
-    position: 'absolute',
-    top: 36,
-    right: 4,
-    width: 95,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E4E7EC',
-    shadowColor: '#101828',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 6,
-    zIndex: 999,
-  },
-  component22MenuItem: {
-    paddingVertical: 7,
-    paddingHorizontal: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  component22MenuText: {
-    fontSize: 12,
-    color: '#344054',
-    fontWeight: '500',
-  },
-  summaryCardAmount: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#1D2939',
-    marginTop: 6,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    padding: 16,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  cardHeading: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1D2939',
-    marginBottom: 14,
-  },
-  breakdownRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 6,
-  },
-  breakdownLabel: {
-    fontSize: 13,
-    color: '#667085',
-  },
-  breakdownValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1D2939',
-  },
-  breakdownDeduction: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#D92D20',
-  },
-  netRow: {
-    borderTopWidth: 1,
-    borderTopColor: '#EAECF0',
-    marginTop: 8,
-    paddingTop: 10,
-  },
-  netLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1D2939',
-  },
-  netValue: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#07522C',
-  },
-  completedSubtext: {
-    fontSize: 11,
-    color: '#667085',
-    marginTop: 8,
-  },
-  transactionsHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  transactionsSectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1D2939',
-  },
-  transactionDateFilter: {
-    fontSize: 12,
-    color: '#667085',
-  },
-  transactionCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    padding: 14,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  transactionLeft: {
-    flex: 1,
-  },
-  txTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1D2939',
-    marginBottom: 2,
-  },
-  txDetails: {
-    fontSize: 11,
-    color: '#667085',
-  },
-  transactionRight: {
-    alignItems: 'flex-end',
-  },
-  txAmount: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#1D2939',
-    marginBottom: 4,
-  },
-  txStatusPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  txStatusPaid: {
-    backgroundColor: '#E7F4EB',
-  },
-  txStatusPending: {
-    backgroundColor: '#FEF0C7',
-  },
-  txStatusText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  txStatusTextPaid: {
-    color: '#07522C',
-  },
-  txStatusTextPending: {
-    color: '#B54708',
-  },
-});
 
 export default EarningsScreen;

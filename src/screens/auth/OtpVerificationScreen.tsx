@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   ToastAndroid,
   ScrollView,
   ActivityIndicator,
@@ -125,31 +124,45 @@ const OtpVerificationScreen = () => {
   const formattedTimer = `00:${secondsLeft < 10 ? `0${secondsLeft}` : secondsLeft}`;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-white">
+      {/* Top Header with Back Button */}
+      <View className="px-4 py-2">
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          className="p-1.5 -ml-1 self-start"
+          activeOpacity={0.7}>
+          <Icon name="arrow-left" size={24} color="#07522C" />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+        className="flex-1 px-5 sm:px-6"
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled">
-        {/* Top Logo Section */}
-        <View style={styles.topLogoSection}>
-          <ClickGLogo size="large" showTagline={true} />
-        </View>
+        <View className="w-full max-w-sm self-center py-6">
+          {/* Logo Section */}
+          <View className="items-center justify-center mb-8 sm:mb-10">
+            <ClickGLogo size="large" showTagline={true} />
+          </View>
 
-        {/* Center Verification Section */}
-        <View style={styles.centerSection}>
+          {/* Center Verification Section */}
+          <View className="w-full">
           {/* Mobile Input Display */}
-          <View style={styles.inputContainer}>
-            <Icon name="cellphone" size={22} color="#1D2939" style={styles.inputIcon} />
-            <Text style={styles.maskedNumberText}>{displayMobile}</Text>
+          <View className="flex-row items-center border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-6">
+            <Icon name="cellphone" size={22} color="#1D2939" style={{ marginRight: 12 }} />
+            <Text className="text-[15px] text-slate-800 tracking-wider font-medium">{displayMobile}</Text>
           </View>
 
           {/* 4 Digit OTP Boxes */}
-          <View style={styles.otpBoxesRow}>
+          <View className="flex-row justify-center mb-6 gap-3 sm:gap-4">
             {otp.map((digit, idx) => (
-              <View key={idx} style={styles.otpBox}>
+              <View
+                key={idx}
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl border border-slate-200 bg-white items-center justify-center shadow-sm">
                 <TextInput
                   ref={inputRefs[idx]}
-                  style={styles.otpInput}
+                  className="text-xl sm:text-2xl font-bold text-slate-900 text-center w-full h-full p-0"
                   keyboardType="number-pad"
                   inputMode="numeric"
                   maxLength={1}
@@ -163,152 +176,37 @@ const OtpVerificationScreen = () => {
           </View>
 
           {/* Resend Code Pill Badge */}
-          <View style={styles.resendWrapper}>
+          <View className="items-center mb-6">
             <TouchableOpacity
-              style={styles.resendBadge}
+              className="flex-row items-center bg-[#EDF3FB] px-4 py-2 rounded-lg"
               activeOpacity={0.8}
               onPress={handleResend}
               disabled={secondsLeft > 0}>
-              <Text style={styles.resendPrefix}>Resend code in </Text>
-              <Text style={styles.resendTimer}>{formattedTimer}</Text>
+              <Text className="text-xs sm:text-[13px] text-slate-700 font-medium">Resend code in </Text>
+              <Text className="text-xs sm:text-[13px] text-amber-700 font-bold">{formattedTimer}</Text>
             </TouchableOpacity>
           </View>
 
           {/* Verify Button (Centered Pill) */}
           <TouchableOpacity
-            style={styles.verifyBtn}
+            className="bg-brand-green w-48 sm:w-52 h-12 rounded-xl self-center items-center justify-center shadow-md shadow-brand-green/20"
             activeOpacity={0.85}
             disabled={loading}
             onPress={handleVerify}>
             {loading ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
-              <Text style={styles.verifyBtnText}>Verify</Text>
+              <Text className="text-white text-[15px] font-bold tracking-wide">Verify</Text>
             )}
           </TouchableOpacity>
         </View>
+        </View>
 
         {/* Bottom spacer for centering balance */}
-        <View style={{ height: 20 }} />
+        <View className="h-4" />
       </ScrollView>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'space-between',
-    paddingHorizontal: 22,
-    paddingTop: 30,
-    paddingBottom: 24,
-  },
-  topLogoSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    top:'17%'
-
-  },
-  centerSection: {
-    width: '100%',
-    paddingVertical: 10,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#D0D5DD',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    height: 50,
-    backgroundColor: '#FFFFFF',
-    marginBottom: 24,
-  },
-  inputIcon: {
-    marginRight: 12,
-  },
-  maskedNumberText: {
-    fontSize: 15,
-    color: '#1D2939',
-    letterSpacing: 1,
-    fontWeight: '500',
-  },
-  otpBoxesRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  otpBox: {
-    width: 52,
-    height: 52,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E4E7EC',
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  otpInput: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#101828',
-    textAlign: 'center',
-    width: '100%',
-    height: '100%',
-    padding: 0,
-  },
-  resendWrapper: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  resendBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EDF3FB',
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-    borderRadius: 8,
-  },
-  resendPrefix: {
-    fontSize: 12.5,
-    color: '#344054',
-    fontWeight: '500',
-  },
-  resendTimer: {
-    fontSize: 12.5,
-    color: '#B45309',
-    fontWeight: '700',
-  },
-  verifyBtn: {
-    backgroundColor: '#07522C',
-    width: 190,
-    height: 48,
-    borderRadius: 10,
-    alignSelf: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#07522C',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  verifyBtnText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-  },
-});
 
 export default OtpVerificationScreen;

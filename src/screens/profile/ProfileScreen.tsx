@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
   Modal,
 } from 'react-native';
@@ -13,7 +12,12 @@ import Icon from '../../components/Icon';
 import BottomNavBar from '../../components/BottomNavBar';
 import { useAuth } from '../../context/AuthContext';
 
-const ProfileScreen = () => {
+interface ProfileScreenProps {
+  hideBottomNav?: boolean;
+  onBackToHome?: () => void;
+}
+
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ hideBottomNav = false, onBackToHome }) => {
   const navigation = useNavigation<any>();
   const { user, logout } = useAuth();
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
@@ -61,297 +65,110 @@ const ProfileScreen = () => {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Top Header */}
-      <View style={styles.topHeader}>
-        <Text style={styles.headerTitle}>Profile</Text>
+    <SafeAreaView className="flex-1 bg-slate-50" edges={['left', 'right']}>
+      {/* Top Header - Left-aligned Title with Back Button */}
+      <View className="flex-row items-center px-4 py-3.5 bg-white border-b border-slate-100">
+        <TouchableOpacity
+          onPress={() => (onBackToHome ? onBackToHome() : (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Home')))}
+          className="p-1.5 -ml-1 mr-3"
+          activeOpacity={0.7}>
+          <Icon name="arrow-left" size={24} color="#07522C" />
+        </TouchableOpacity>
+        <Text className="text-lg sm:text-xl font-bold text-slate-900">Profile</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
         {/* Profile Card Header */}
-        <View style={styles.profileCard}>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarInitial}>K</Text>
+        <View className="flex-row items-center bg-white rounded-2xl border border-slate-200 p-4 mb-4 shadow-sm">
+          <View className="w-14 h-14 rounded-full bg-brand-lightGreen items-center justify-center mr-3.5 border-2 border-brand-green/20">
+            <Text className="text-xl font-extrabold text-brand-green">K</Text>
           </View>
-          <View style={styles.profileInfoCol}>
-            <Text style={styles.profileName}>{user?.name || 'Kumar'}</Text>
-            <Text style={styles.profilePhone}>{user?.mobile || '+91 98765 43210'}</Text>
-            <View style={styles.verifiedBadge}>
-              <Text style={styles.verifiedBadgeText}>Verified partner</Text>
+          <View className="flex-1">
+            <Text className="text-base sm:text-lg font-bold text-slate-900">{user?.name || 'Kumar'}</Text>
+            <Text className="text-xs sm:text-[13px] text-slate-500 mb-1">{user?.mobile || '+91 98765 43210'}</Text>
+            <View className="self-start bg-emerald-100 px-2 py-0.5 rounded-full">
+              <Text className="text-[10px] sm:text-xs font-bold text-emerald-800">Verified partner</Text>
             </View>
           </View>
         </View>
 
         {/* Menu Navigation Card */}
-        <View style={styles.menuCard}>
+        <View className="bg-white rounded-2xl border border-slate-200 overflow-hidden mb-4 shadow-sm">
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={index}
-              style={[
-                styles.menuRow,
-                index === menuItems.length - 1 && { borderBottomWidth: 0 },
-              ]}
+              className={`flex-row items-center px-4 py-3.5 ${
+                index !== menuItems.length - 1 ? 'border-b border-slate-100' : ''
+              } active:bg-slate-50`}
               activeOpacity={0.7}
               onPress={item.onPress}>
-              <Icon name={item.icon} size={20} color="#07522C" style={styles.menuIcon} />
-              <Text style={styles.menuTitle}>{item.title}</Text>
+              <View className="w-8 h-8 rounded-lg bg-emerald-50 items-center justify-center mr-3">
+                <Icon name={item.icon} size={18} color="#07522C" />
+              </View>
+              <Text className="flex-1 text-xs sm:text-sm font-semibold text-slate-800">{item.title}</Text>
               <Icon name="chevron-right" size={18} color="#98A2B3" />
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Logout Row Card */}
-        <View style={styles.logoutCard}>
+        <View className="bg-white rounded-2xl border border-slate-200 overflow-hidden mb-6 shadow-sm">
           <TouchableOpacity
-            style={styles.menuRow}
+            className="flex-row items-center px-4 py-3.5 active:bg-red-50"
             activeOpacity={0.7}
             onPress={() => setLogoutModalVisible(true)}>
-            <Icon name="logout" size={20} color="#D92D20" style={styles.menuIcon} />
-            <Text style={[styles.menuTitle, { color: '#D92D20' }]}>Logout</Text>
+            <View className="w-8 h-8 rounded-lg bg-red-50 items-center justify-center mr-3">
+              <Icon name="logout" size={18} color="#D92D20" />
+            </View>
+            <Text className="flex-1 text-xs sm:text-sm font-bold text-red-600">Logout</Text>
             <Icon name="chevron-right" size={18} color="#98A2B3" />
           </TouchableOpacity>
         </View>
 
         {/* Version Footer */}
-        <Text style={styles.versionFooter}>ClickG Service Partner • Version 1.0.0</Text>
+        <Text className="text-center text-[11px] text-slate-400 mb-2">
+          ClickG Service Partner • Version 1.0.0
+        </Text>
       </ScrollView>
 
-      {/* Logout Confirmation Modal (Screen 6 of Image 2) */}
+      {/* Logout Confirmation Modal */}
       <Modal
         visible={logoutModalVisible}
         transparent
         animationType="fade"
         onRequestClose={() => setLogoutModalVisible(false)}>
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <View style={styles.logoutIconCircle}>
-              <Icon name="logout" size={24} color="#D92D20" />
+        <View className="flex-1 bg-black/50 items-center justify-center p-5">
+          <View className="w-full max-w-sm bg-white rounded-3xl p-6 items-center shadow-xl">
+            <View className="w-14 h-14 rounded-full bg-red-100 items-center justify-center mb-4">
+              <Icon name="logout" size={26} color="#D92D20" />
             </View>
 
-            <Text style={styles.modalTitle}>Logout of ClickG?</Text>
-            <Text style={styles.modalDesc}>
+            <Text className="text-lg font-bold text-slate-900 mb-1.5 text-center">Logout of ClickG?</Text>
+            <Text className="text-xs sm:text-sm text-slate-500 text-center mb-6 leading-5">
               You'll need to verify your mobile number again to manage your service jobs.
             </Text>
 
             <TouchableOpacity
-              style={styles.confirmLogoutBtn}
+              className="bg-red-600 w-full h-12 rounded-xl items-center justify-center mb-2.5 shadow-sm"
               activeOpacity={0.85}
               onPress={handleConfirmLogout}>
-              <Text style={styles.confirmLogoutBtnText}>Logout</Text>
+              <Text className="text-white text-sm font-bold">Logout</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.stayLoggedInBtn}
+              className="w-full h-11 items-center justify-center rounded-xl"
               activeOpacity={0.8}
               onPress={() => setLogoutModalVisible(false)}>
-              <Text style={styles.stayLoggedInBtnText}>Stay Logged In</Text>
+              <Text className="text-slate-600 text-xs sm:text-sm font-bold">Stay Logged In</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
       {/* Bottom Nav */}
-      <BottomNavBar currentTab="Profile" />
+      {!hideBottomNav && <BottomNavBar currentTab="Profile" />}
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  topHeader: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#07522C',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  profileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  avatarCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#E7F4EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  avatarInitial: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#07522C',
-  },
-  profileInfoCol: {
-    flex: 1,
-  },
-  profileName: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#1D2939',
-  },
-  profilePhone: {
-    fontSize: 12,
-    color: '#667085',
-    marginTop: 2,
-    marginBottom: 6,
-  },
-  verifiedBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#E7F4EB',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  verifiedBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#07522C',
-  },
-  menuCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    paddingHorizontal: 16,
-    marginBottom: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  logoutCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  menuRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  menuIcon: {
-    marginRight: 14,
-  },
-  menuTitle: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#344054',
-  },
-  versionFooter: {
-    fontSize: 11,
-    color: '#98A2B3',
-    textAlign: 'center',
-    marginTop: 6,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  modalCard: {
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  logoutIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#FEE4E2',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1D2939',
-    marginBottom: 6,
-  },
-  modalDesc: {
-    fontSize: 13,
-    color: '#667085',
-    textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 20,
-    paddingHorizontal: 8,
-  },
-  confirmLogoutBtn: {
-    width: '100%',
-    height: 46,
-    backgroundColor: '#D92D20',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  confirmLogoutBtnText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  stayLoggedInBtn: {
-    width: '100%',
-    height: 46,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#D0D5DD',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stayLoggedInBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#344054',
-  },
-});
 
 export default ProfileScreen;

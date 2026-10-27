@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,274 +31,144 @@ const TransactionDetailsScreen = () => {
     expectedSettlement: '12 Oct 2026',
   };
 
+  const isPaid = transaction.status === 'Paid';
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Top Header */}
-      <View style={styles.topHeader}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
-          <Icon name="arrow-left" size={22} color="#07522C" />
+    <SafeAreaView className="flex-1 bg-slate-50">
+      {/* Top Header - Left-aligned Title with Back Button */}
+      <View className="flex-row items-center px-4 py-3.5 bg-white border-b border-slate-100">
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          className="p-1.5 -ml-1 mr-3"
+          activeOpacity={0.7}>
+          <Icon name="arrow-left" size={24} color="#07522C" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Transaction Details</Text>
-        <View style={{ width: 22 }} />
+        <Text className="text-lg sm:text-xl font-bold text-slate-900">Transaction Details</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
         {/* Main Amount Card */}
-        <View style={styles.card}>
-          <Text style={styles.serviceTitle}>{transaction.title || 'Plumbing Repair'}</Text>
-          <Text style={styles.subRef}>
+        <View className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 shadow-sm">
+          <Text className="text-base sm:text-lg font-bold text-slate-900 mb-1">
+            {transaction.title || 'Plumbing Repair'}
+          </Text>
+          <Text className="text-xs text-slate-500 mb-2.5">
             Booking {transaction.bookingRef || 'CG-1042'} • Transaction {transaction.txRef || 'TX-1042'}
           </Text>
 
-          <View style={styles.statusPill}>
-            <Text style={styles.statusPillText}>{transaction.status || 'Pending'}</Text>
+          <View
+            className={`self-start px-3 py-1 rounded-full mb-3 ${
+              isPaid ? 'bg-emerald-100' : 'bg-amber-100'
+            }`}>
+            <Text
+              className={`text-xs font-bold ${
+                isPaid ? 'text-emerald-800' : 'text-amber-800'
+              }`}>
+              {transaction.status || 'Pending'}
+            </Text>
           </View>
 
-          <View style={styles.divider} />
+          <View className="h-px bg-slate-100 my-2" />
 
-          <View style={styles.amountRow}>
-            <Text style={styles.amountLabel}>Gross Service Amount</Text>
-            <Text style={styles.amountValue}>₹{transaction.grossAmount?.toLocaleString() || '1,500'}</Text>
+          <View className="flex-row justify-between py-1.5">
+            <Text className="text-xs sm:text-[13px] text-slate-600">Gross Service Amount</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-slate-900">
+              ₹{transaction.grossAmount?.toLocaleString() || '1,500'}
+            </Text>
           </View>
 
-          <View style={styles.amountRow}>
-            <Text style={styles.amountLabel}>Platform Commission (20%)</Text>
-            <Text style={styles.deductionValue}>
+          <View className="flex-row justify-between py-1.5">
+            <Text className="text-xs sm:text-[13px] text-slate-600">Platform Commission (20%)</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-red-600">
               - ₹{transaction.platformCommission?.toLocaleString() || '300'}
             </Text>
           </View>
 
-          <View style={[styles.amountRow, styles.netEarningsRow]}>
-            <Text style={styles.netLabel}>Net Partner Earnings</Text>
-            <Text style={styles.netValue}>₹{transaction.netEarnings?.toLocaleString() || '1,200'}</Text>
+          <View className="flex-row justify-between pt-3 mt-1 border-t border-slate-100">
+            <Text className="text-xs sm:text-sm font-bold text-brand-green">Net Partner Earnings</Text>
+            <Text className="text-sm sm:text-base font-extrabold text-brand-green">
+              ₹{transaction.netEarnings?.toLocaleString() || '1,200'}
+            </Text>
           </View>
         </View>
 
         {/* Completion & Customer Details Card */}
-        <View style={styles.card}>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Completed on</Text>
-            <Text style={styles.infoValue}>{transaction.completedOn || '10 Oct 2026 • 11:15 AM'}</Text>
+        <View className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 shadow-sm">
+          <View className="flex-row justify-between py-2 border-b border-slate-100">
+            <Text className="text-xs sm:text-[13px] text-slate-500">Completed on</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-slate-900">
+              {transaction.completedOn || '10 Oct 2026 • 11:15 AM'}
+            </Text>
           </View>
 
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Customer</Text>
-            <Text style={styles.infoValue}>{transaction.customer || 'Ananya Sharma'}</Text>
+          <View className="flex-row justify-between py-2 border-b border-slate-100">
+            <Text className="text-xs sm:text-[13px] text-slate-500">Customer</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-slate-900">
+              {transaction.customer || 'Ananya Sharma'}
+            </Text>
           </View>
 
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Service area</Text>
-            <Text style={styles.infoValue}>{transaction.serviceArea || 'Koramangala, Bengaluru'}</Text>
+          <View className="flex-row justify-between py-2 border-b border-slate-100">
+            <Text className="text-xs sm:text-[13px] text-slate-500">Service area</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-slate-900">
+              {transaction.serviceArea || 'Koramangala, Bengaluru'}
+            </Text>
           </View>
 
-          <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
-            <Text style={styles.infoLabel}>Payment method</Text>
-            <Text style={styles.infoValue}>{transaction.paymentMethod || 'Bank transfer'}</Text>
+          <View className="flex-row justify-between pt-2">
+            <Text className="text-xs sm:text-[13px] text-slate-500">Payment method</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-slate-900">
+              {transaction.paymentMethod || 'Bank transfer'}
+            </Text>
           </View>
         </View>
 
         {/* Payout Account Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardHeading}>Payout account</Text>
+        <View className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 shadow-sm">
+          <Text className="text-sm sm:text-base font-bold text-slate-900 mb-2">Payout account</Text>
 
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Account holder</Text>
-            <Text style={styles.infoValue}>{transaction.accountHolder || 'Kumar'}</Text>
+          <View className="flex-row justify-between py-2 border-b border-slate-100">
+            <Text className="text-xs sm:text-[13px] text-slate-500">Account holder</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-slate-900">
+              {transaction.accountHolder || 'Kumar'}
+            </Text>
           </View>
 
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Bank</Text>
-            <Text style={styles.infoValue}>{transaction.bank || 'HDFC Bank •••• 9012'}</Text>
+          <View className="flex-row justify-between py-2 border-b border-slate-100">
+            <Text className="text-xs sm:text-[13px] text-slate-500">Bank</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-slate-900">
+              {transaction.bank || 'HDFC Bank •••• 9012'}
+            </Text>
           </View>
 
-          <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
-            <Text style={styles.infoLabel}>Expected settlement</Text>
-            <Text style={styles.infoValue}>{transaction.expectedSettlement || '12 Oct 2026'}</Text>
+          <View className="flex-row justify-between pt-2">
+            <Text className="text-xs sm:text-[13px] text-slate-500">Expected settlement</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-slate-900">
+              {transaction.expectedSettlement || '12 Oct 2026'}
+            </Text>
           </View>
         </View>
 
         {/* Info Banner */}
-        <View style={styles.infoBanner}>
+        <View className="flex-row items-center bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-4">
           <Icon name="information-outline" size={18} color="#07522C" style={{ marginRight: 8 }} />
-          <Text style={styles.infoBannerText}>
+          <Text className="text-xs text-brand-green flex-1">
             ₹{transaction.netEarnings?.toLocaleString() || '1,200'} is pending settlement. Your payment status will update once transferred.
           </Text>
         </View>
       </ScrollView>
 
       {/* Bottom Action Button */}
-      <View style={styles.bottomBar}>
+      <View className="p-4 bg-white border-t border-slate-100">
         <TouchableOpacity
-          style={styles.backBtn}
+          className="bg-brand-green w-full h-12 rounded-xl items-center justify-center shadow-md shadow-brand-green/20"
           activeOpacity={0.88}
           onPress={() => navigation.navigate('Earnings')}>
-          <Text style={styles.backBtnText}>Back to Earnings</Text>
+          <Text className="text-white text-[15px] font-bold">Back to Earnings</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  topHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#07522C',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#EAECF0',
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  serviceTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1D2939',
-  },
-  subRef: {
-    fontSize: 12,
-    color: '#667085',
-    marginTop: 4,
-    marginBottom: 10,
-  },
-  statusPill: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#FEF0C7',
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  statusPillText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#B54708',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#F2F4F7',
-    marginVertical: 10,
-  },
-  amountRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 6,
-  },
-  amountLabel: {
-    fontSize: 13,
-    color: '#667085',
-  },
-  amountValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1D2939',
-  },
-  deductionValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#D92D20',
-  },
-  netEarningsRow: {
-    borderTopWidth: 1,
-    borderTopColor: '#EAECF0',
-    marginTop: 8,
-    paddingTop: 12,
-  },
-  netLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1D2939',
-  },
-  netValue: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#07522C',
-  },
-  cardHeading: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1D2939',
-    marginBottom: 10,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 9,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-  },
-  infoLabel: {
-    fontSize: 12,
-    color: '#667085',
-  },
-  infoValue: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1D2939',
-  },
-  infoBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E7F4EB',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 12,
-  },
-  infoBannerText: {
-    fontSize: 12,
-    color: '#07522C',
-    flex: 1,
-    lineHeight: 16,
-  },
-  bottomBar: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#F2F4F7',
-  },
-  backBtn: {
-    width: '100%',
-    height: 48,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#D0D5DD',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#344054',
-  },
-});
 
 export default TransactionDetailsScreen;
