@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -19,18 +19,21 @@ const ActiveJobScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { activeJob } = useJobs();
+  const [timelineExpanded, setTimelineExpanded] = useState(false);
 
-  const job = route?.params?.job || activeJob || {
-    id: 'req-1',
-    bookingRef: 'CG-1042',
-    category: 'Plumbing Repair',
-    distanceKm: '2.4 km',
-    scheduledTime: 'Today • 10:30 AM',
-    fullAddress: 'Flat 202, Maple Apartments, 5th Block, Koramangala, Bengaluru - 560095',
-    customerName: 'Ananya Sharma',
-    customerPhone: '+91 98765 01234',
-    estimatedEarnings: 1200,
-    acceptedAt: '10:35 AM',
+  const rawJob = route?.params?.job || activeJob || {};
+  const job = {
+    id: rawJob.id || 'req-1',
+    bookingRef: rawJob.bookingRef || 'CG-1042',
+    category: rawJob.category || rawJob.title || 'Plumbing Repair',
+    distanceKm: rawJob.distanceKm || '2.4 km',
+    scheduledTime: rawJob.scheduledTime || rawJob.timeStr || 'Today • 10:30 AM',
+    fullAddress: rawJob.fullAddress || rawJob.area || 'Flat 202, Maple Apartments, 5th Block, Koramangala, Bengaluru - 560095',
+    customerName: rawJob.customerName || rawJob.customer || 'Ananya Sharma',
+    customerPhone: rawJob.customerPhone || '+91 98765 01234',
+    estimatedEarnings: Number(rawJob.estimatedEarnings ?? rawJob.price ?? 1200),
+    acceptedAt: rawJob.acceptedAt || '10:35 AM',
+    status: rawJob.status || rawJob.badge || 'accepted',
   };
 
   const showNotification = (msg: string) => {
@@ -85,7 +88,7 @@ const ActiveJobScreen = () => {
             </View>
             <View style={{ alignItems: 'flex-end' }}>
               <Text style={styles.earningsLabel}>Estimated earnings</Text>
-              <Text style={styles.earningsValue}>₹{job.estimatedEarnings.toLocaleString()}</Text>
+              <Text style={styles.earningsValue}>₹{(job.estimatedEarnings ?? 1200).toLocaleString()}</Text>
             </View>
           </View>
         </View>
@@ -116,20 +119,84 @@ const ActiveJobScreen = () => {
           </View>
         </View>
 
-        {/* In Progress Timeline Card */}
+        {/* In Progress Timeline Card (Matches Figma Information Card) */}
         <View style={styles.card}>
           <Text style={styles.timelineTitle}>In progress</Text>
 
-          <View style={styles.timelineItem}>
-            <View style={styles.timelineStepBadge}>
-              <Text style={styles.timelineStepNum}>1</Text>
+          {!timelineExpanded ? (
+            /* Collapsed State */
+            <TouchableOpacity
+              style={styles.timelineItem}
+              activeOpacity={0.8}
+              onPress={() => setTimelineExpanded(true)}>
+              <View style={styles.timelineStepBadgeActive}>
+                <Text style={styles.timelineStepNumActive}>1</Text>
+              </View>
+              <View style={styles.timelineContent}>
+                <Text style={styles.timelineStepTitle}>Accepted</Text>
+                <Text style={styles.timelineStepTime}>{job.acceptedAt || '10:05 AM'}</Text>
+              </View>
+              <View style={styles.currentBadge}>
+                <Text style={styles.currentBadgeText}>Current</Text>
+              </View>
+              <Icon name="chevron-down" size={20} color="#344054" style={{ marginLeft: 6 }} />
+            </TouchableOpacity>
+          ) : (
+            /* Expanded State */
+            <View>
+              {[
+                { step: 1, title: 'Accepted', time: job.acceptedAt || '10:05 AM', current: true, done: true },
+                { step: 2, title: 'On the Way', time: 'Pending', current: false, done: false },
+                { step: 3, title: 'Arrived', time: 'Pending', current: false, done: false },
+                { step: 4, title: 'Service Started', time: 'Pending', current: false, done: false },
+                { step: 5, title: 'Service Completed', time: 'Submit completion to finish', current: false, done: false },
+              ].map((item, idx) => (
+                <View
+                  key={item.step}
+                  style={[
+                    styles.timelineItemExpanded,
+                    idx < 4 && styles.timelineItemBorder,
+                  ]}>
+                  <View
+                    style={[
+                      styles.timelineStepBadge,
+                      item.current ? styles.timelineStepBadgeActive : styles.timelineStepBadgePending,
+                    ]}>
+                    <Text
+                      style={[
+                        styles.timelineStepNum,
+                        item.current ? styles.timelineStepNumActive : styles.timelineStepNumPending,
+                      ]}>
+                      {item.step}
+                    </Text>
+                  </View>
+                  <View style={styles.timelineContent}>
+                    <Text
+                      style={[
+                        styles.timelineStepTitle,
+                        !item.current && styles.timelineStepTitlePending,
+                      ]}>
+                      {item.title}
+                    </Text>
+                    <Text style={styles.timelineStepTime}>{item.time}</Text>
+                  </View>
+                  {item.current && (
+                    <View style={styles.currentBadge}>
+                      <Text style={styles.currentBadgeText}>Current</Text>
+                    </View>
+                  )}
+                  {idx === 0 && (
+                    <TouchableOpacity
+                      onPress={() => setTimelineExpanded(false)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      style={{ marginLeft: 6 }}>
+                      <Icon name="chevron-up" size={20} color="#344054" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
             </View>
-            <View style={styles.timelineContent}>
-              <Text style={styles.timelineStepTitle}>Accepted</Text>
-              <Text style={styles.timelineStepTime}>{job.acceptedAt || '10:35 AM'}</Text>
-            </View>
-            <Icon name="chevron-down" size={20} color="#07522C" />
-          </View>
+          )}
         </View>
       </ScrollView>
 
@@ -281,31 +348,88 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  timelineItemExpanded: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  timelineItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F4F7',
+  },
   timelineStepBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  timelineStepBadgeActive: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: '#07522C',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 12,
+  },
+  timelineStepBadgePending: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 1.5,
+    borderColor: '#D0D5DD',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
   timelineStepNum: {
     fontSize: 12,
     fontWeight: '700',
+  },
+  timelineStepNumActive: {
     color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  timelineStepNumPending: {
+    color: '#667085',
+    fontSize: 12,
+    fontWeight: '600',
   },
   timelineContent: {
     flex: 1,
   },
   timelineStepTitle: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#1D2939',
+  },
+  timelineStepTitlePending: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#667085',
   },
   timelineStepTime: {
     fontSize: 11,
     color: '#667085',
+    marginTop: 2,
+  },
+  currentBadge: {
+    backgroundColor: '#ECFDF3',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#A6F4C5',
+    marginRight: 4,
+  },
+  currentBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#027A48',
   },
   bottomBar: {
     paddingHorizontal: 20,

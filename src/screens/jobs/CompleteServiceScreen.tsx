@@ -19,17 +19,18 @@ const CompleteServiceScreen = () => {
   const route = useRoute<any>();
   const { completeJob, activeJob } = useJobs();
 
-  const job = route?.params?.job || activeJob || {
-    id: 'req-1',
-    bookingRef: 'CG-1042',
-    category: 'Plumbing Repair',
-    scheduledTime: 'Today • 10:30 AM',
-    estimatedEarnings: 1200,
-    grossAmount: 1500,
-    platformCommission: 300,
-    additionalCharges: 500,
-    gstAmount: 170,
-    netEarnings: 1870,
+  const rawJob = route?.params?.job || activeJob || {};
+  const job = {
+    id: rawJob.id || 'req-1',
+    bookingRef: rawJob.bookingRef || 'CG-1042',
+    category: rawJob.category || rawJob.title || 'Plumbing Repair',
+    scheduledTime: rawJob.scheduledTime || rawJob.timeStr || 'Today • 10:30 AM',
+    estimatedEarnings: Number(rawJob.estimatedEarnings ?? rawJob.price ?? 1200),
+    grossAmount: Number(rawJob.grossAmount ?? (rawJob.price ? Math.round(rawJob.price * 1.25) : 1500)),
+    platformCommission: Number(rawJob.platformCommission ?? (rawJob.price ? Math.round(rawJob.price * 0.25) : 300)),
+    additionalCharges: Number(rawJob.additionalCharges ?? 500),
+    gstAmount: Number(rawJob.gstAmount ?? 170),
+    netEarnings: Number(rawJob.netEarnings ?? rawJob.price ?? 1870),
   };
 
   const [isCustomerChecked, setIsCustomerChecked] = useState(true);
@@ -86,7 +87,7 @@ const CompleteServiceScreen = () => {
             </View>
             <View style={{ alignItems: 'flex-end' }}>
               <Text style={styles.earningsLabel}>Estimated earnings</Text>
-              <Text style={styles.earningsValue}>₹{job.estimatedEarnings.toLocaleString()}</Text>
+              <Text style={styles.earningsValue}>₹{(job.estimatedEarnings ?? 1200).toLocaleString()}</Text>
             </View>
           </View>
         </View>
@@ -172,23 +173,23 @@ const CompleteServiceScreen = () => {
         <View style={styles.card}>
           <View style={styles.breakdownRow}>
             <Text style={styles.breakdownLabel}>Gross Service Amount</Text>
-            <Text style={styles.breakdownValue}>₹{job.grossAmount.toLocaleString()}</Text>
+            <Text style={styles.breakdownValue}>₹{(job.grossAmount ?? 1500).toLocaleString()}</Text>
           </View>
           <View style={styles.breakdownRow}>
             <Text style={styles.breakdownLabel}>Platform Commission (20%)</Text>
-            <Text style={styles.breakdownDeduction}>- ₹{job.platformCommission.toLocaleString()}</Text>
+            <Text style={styles.breakdownDeduction}>- ₹{(job.platformCommission ?? 300).toLocaleString()}</Text>
           </View>
           <View style={styles.breakdownRow}>
             <Text style={styles.breakdownLabel}>Additional Charges</Text>
-            <Text style={styles.breakdownValue}>₹{job.additionalCharges.toLocaleString()}</Text>
+            <Text style={styles.breakdownValue}>₹{(job.additionalCharges ?? 500).toLocaleString()}</Text>
           </View>
           <View style={styles.breakdownRow}>
             <Text style={styles.breakdownLabel}>GST 18%</Text>
-            <Text style={styles.breakdownValue}>₹{job.gstAmount.toLocaleString()}</Text>
+            <Text style={styles.breakdownValue}>₹{(job.gstAmount ?? 170).toLocaleString()}</Text>
           </View>
           <View style={[styles.breakdownRow, styles.netEarningsRow]}>
             <Text style={styles.netEarningsLabel}>Net Partner Earnings</Text>
-            <Text style={styles.netEarningsValue}>₹{job.netEarnings.toLocaleString()}</Text>
+            <Text style={styles.netEarningsValue}>₹{(job.netEarnings ?? 1870).toLocaleString()}</Text>
           </View>
         </View>
       </ScrollView>

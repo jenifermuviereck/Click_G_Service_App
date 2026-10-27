@@ -20,19 +20,33 @@ const MyJobsScreen = () => {
     {
       id: 'job-1',
       title: 'Painting Service',
+      category: 'Painting Service',
       bookingRef: 'CG-1044',
       area: 'Indiranagar, Bengaluru',
+      fullAddress: 'Flat 402, Sunshine Apts, 100ft Road, Indiranagar, Bengaluru - 560038',
       timeStr: 'Today • 4:00 PM',
+      scheduledTime: 'Today • 4:00 PM',
+      distanceKm: '3.2 km',
+      customerName: 'Karthik Rao',
+      customerPhone: '+91 98765 11223',
       price: 2400,
+      estimatedEarnings: 2400,
       badge: 'Upcoming',
     },
     {
       id: 'job-2',
       title: 'Electrical Wiring',
+      category: 'Electrical Wiring',
       bookingRef: 'CG-1045',
       area: 'HSR Layout, Bengaluru',
+      fullAddress: 'No 78, 27th Main, Sector 1, HSR Layout, Bengaluru - 560102',
       timeStr: 'Tomorrow • 9:00 AM',
+      scheduledTime: 'Tomorrow • 9:00 AM',
+      distanceKm: '4.5 km',
+      customerName: 'Pooja Hegde',
+      customerPhone: '+91 98765 33445',
       price: 950,
+      estimatedEarnings: 950,
       badge: 'Upcoming',
     },
   ];
@@ -41,10 +55,22 @@ const MyJobsScreen = () => {
     {
       id: 'job-3',
       title: 'Plumbing Repair',
+      category: 'Plumbing Repair',
       bookingRef: 'CG-1042',
       area: 'Koramangala, Bengaluru',
+      fullAddress: 'Flat 202, Maple Apartments, 5th Block, Koramangala, Bengaluru - 560095',
       timeStr: 'Today • 10:30 AM',
+      scheduledTime: 'Today • 10:30 AM',
+      distanceKm: '2.4 km',
+      customerName: 'Ananya Sharma',
+      customerPhone: '+91 98765 01234',
       price: 1200,
+      estimatedEarnings: 1200,
+      grossAmount: 1500,
+      platformCommission: 300,
+      additionalCharges: 500,
+      gstAmount: 170,
+      netEarnings: 1870,
       badge: 'Service Started',
     },
   ];
@@ -131,7 +157,7 @@ const MyJobsScreen = () => {
 
                   <View style={styles.timePriceRow}>
                     <Text style={styles.jobTimeText}>{job.timeStr}</Text>
-                    <Text style={styles.jobPriceText}>₹{job.price.toLocaleString()}</Text>
+                    <Text style={styles.jobPriceText}>₹{(job.price ?? 0).toLocaleString()}</Text>
                   </View>
 
                   <TouchableOpacity
@@ -167,7 +193,7 @@ const MyJobsScreen = () => {
 
                   <View style={styles.timePriceRow}>
                     <Text style={styles.jobTimeText}>{job.timeStr}</Text>
-                    <Text style={styles.jobPriceText}>₹{job.price.toLocaleString()}</Text>
+                    <Text style={styles.jobPriceText}>₹{(job.price ?? 0).toLocaleString()}</Text>
                   </View>
 
                   <TouchableOpacity
@@ -203,7 +229,7 @@ const MyJobsScreen = () => {
 
                   <View style={styles.timePriceRow}>
                     <Text style={styles.jobTimeText}>{job.timeStr}</Text>
-                    <Text style={styles.jobPriceText}>₹{job.price.toLocaleString()}</Text>
+                    <Text style={styles.jobPriceText}>₹{(job.price ?? 0).toLocaleString()}</Text>
                   </View>
 
                   <TouchableOpacity

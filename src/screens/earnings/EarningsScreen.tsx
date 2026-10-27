@@ -16,6 +16,10 @@ const EarningsScreen = () => {
   const navigation = useNavigation<any>();
   const [summary] = useState(mockEarningsSummary);
   const [transactions] = useState(mockTransactions);
+  const [selectedTimeframe, setSelectedTimeframe] = useState('Today');
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const timeframeOptions = ['Weekly', 'Monthly', 'Year', '5 Years', 'Life Time'];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -31,13 +35,36 @@ const EarningsScreen = () => {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Top 3 Summary Cards */}
         <View style={styles.summaryCardsRow}>
-          {/* Today */}
-          <View style={styles.summaryCard}>
+          {/* Today / Component 22 */}
+          <View style={[styles.summaryCard, { zIndex: 999 }]}>
             <View style={styles.summaryCardHeader}>
-              <Text style={styles.summaryCardLabel}>Today</Text>
-              <Icon name="dots-vertical" size={16} color="#667085" />
+              <Text style={styles.summaryCardLabel}>{selectedTimeframe}</Text>
+              <TouchableOpacity
+                onPress={() => setMenuOpen(!menuOpen)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Icon name="dots-vertical" size={16} color="#667085" />
+              </TouchableOpacity>
             </View>
             <Text style={styles.summaryCardAmount}>₹{summary.todayTotal.toLocaleString()}</Text>
+
+            {menuOpen && (
+              <View style={styles.component22Menu}>
+                {timeframeOptions.map((opt, i) => (
+                  <TouchableOpacity
+                    key={opt}
+                    style={[
+                      styles.component22MenuItem,
+                      i === timeframeOptions.length - 1 && { borderBottomWidth: 0 },
+                    ]}
+                    onPress={() => {
+                      setSelectedTimeframe(opt);
+                      setMenuOpen(false);
+                    }}>
+                    <Text style={styles.component22MenuText}>{opt}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
 
           {/* This month */}
@@ -202,6 +229,33 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#667085',
     flex: 1,
+  },
+  component22Menu: {
+    position: 'absolute',
+    top: 36,
+    right: 4,
+    width: 95,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E4E7EC',
+    shadowColor: '#101828',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 6,
+    zIndex: 999,
+  },
+  component22MenuItem: {
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F4F7',
+  },
+  component22MenuText: {
+    fontSize: 12,
+    color: '#344054',
+    fontWeight: '500',
   },
   summaryCardAmount: {
     fontSize: 15,

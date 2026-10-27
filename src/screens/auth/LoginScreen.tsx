@@ -57,6 +57,12 @@ const LoginScreen = () => {
     }
   };
 
+  const handleMobileChange = (text: string) => {
+    // Strict numeric validation: only allows 0-9 digits up to 10 characters
+    const digitsOnly = text.replace(/[^0-9]/g, '');
+    setMobile(digitsOnly.slice(0, 10));
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -77,10 +83,11 @@ const LoginScreen = () => {
               style={styles.textInput}
               placeholder="Mobile Number"
               placeholderTextColor="#98A2B3"
-              keyboardType="phone-pad"
+              keyboardType="number-pad"
+              inputMode="numeric"
               maxLength={10}
               value={mobile}
-              onChangeText={setMobile}
+              onChangeText={handleMobileChange}
             />
           </View>
 
@@ -93,7 +100,7 @@ const LoginScreen = () => {
             {loading ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
-              <Text style={styles.sendOtpBtnText}>Send OTPs</Text>
+              <Text style={styles.sendOtpBtnText}>Send OTP</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -134,8 +141,7 @@ const styles = StyleSheet.create({
   topLogoSection: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 80,
-    marginBottom: 24,
+    top:'14%'
   },
   centerSection: {
     width: '100%',
@@ -190,7 +196,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     marginTop: 40,
-    marginBottom: 10,
+    bottom:'24%'
   },
   avatarIconBox: {
     width: 42,

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   Switch,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -15,11 +16,16 @@ import BottomNavBar from '../../components/BottomNavBar';
 import { useAuth } from '../../context/AuthContext';
 import { useJobs } from '../../context/JobContext';
 
+const homeBanner = require('../../data/home.png');
+
 const HomeScreen = () => {
   const navigation = useNavigation<any>();
   const { user, isOnline, toggleOnlineStatus } = useAuth();
   const { dashboardCounts } = useJobs();
   const [selectedPeriod, setSelectedPeriod] = useState('Today');
+  const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false);
+
+  const periodOptions = ['Today', 'Yesterday', 'Weekly', 'Custom'];
 
   const metrics = [
     { label: 'Assigned Job', count: dashboardCounts.assigned, route: 'AcceptRequest' },
@@ -65,65 +71,118 @@ const HomeScreen = () => {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
-        {/* Promotional Banner */}
-        <View style={styles.promoCard}>
-          <View style={styles.promoTextCol}>
-            <Text style={styles.promoTitle}>Grow Your Business with ClickG</Text>
-            <Text style={styles.promoSubtitle}>Join 200+ service partners earning daily!</Text>
-          </View>
-          <View style={styles.promoIllustrationBox}>
-            <View style={styles.partnerFigure}>
-              <Icon name="account-group" size={42} color="#A7F3D0" />
-            </View>
-          </View>
+        {/* Promotional Banner with data/home.png */}
+        <View style={styles.bannerContainer}>
+          <Image
+            source={homeBanner}
+            style={styles.bannerImage}
+            resizeMode="cover"
+          />
         </View>
 
-        {/* Offline / Online Availability Card */}
-        <View style={styles.availabilityCard}>
-          <View style={styles.availabilityLeft}>
-            <View style={styles.statusIndicatorRow}>
+        {/* Offline / Online Availability Card (Matches Figma Status Card) */}
+        <View style={styles.statusCard}>
+          {/* Top Row: Icon + Title on left, Badge on right */}
+          <View style={styles.statusTopRow}>
+            <View style={styles.statusTitleGroup}>
               <View
                 style={[
-                  styles.statusDot,
-                  isOnline ? styles.statusDotOnline : styles.statusDotOffline,
-                ]}
-              />
-              <Text style={styles.statusTitleText}>{isOnline ? 'Online' : 'Offline'}</Text>
+                  styles.statusRing,
+                  isOnline ? styles.statusRingOnline : styles.statusRingOffline,
+                ]}>
+                <View
+                  style={[
+                    styles.statusInnerDot,
+                    isOnline ? styles.statusInnerDotOnline : styles.statusInnerDotOffline,
+                  ]}
+                />
+              </View>
+              <Text
+                style={[
+                  styles.statusTitleText,
+                  isOnline ? styles.statusTitleOnline : styles.statusTitleOffline,
+                ]}>
+                {isOnline ? 'Online' : 'Offline'}
+              </Text>
             </View>
-            <Text style={styles.statusSubText}>
-              {isOnline ? "You're online now" : "You're offline now"}
-            </Text>
-          </View>
 
-          <View style={styles.availabilityRight}>
             <View
               style={[
-                styles.availabilityTag,
-                isOnline ? styles.tagOnline : styles.tagOffline,
+                styles.statusBadge,
+                isOnline ? styles.statusBadgeOnline : styles.statusBadgeOffline,
               ]}>
               <Text
                 style={[
-                  styles.tagText,
-                  isOnline ? styles.tagTextOnline : styles.tagTextOffline,
+                  styles.statusBadgeText,
+                  isOnline ? styles.statusBadgeTextOnline : styles.statusBadgeTextOffline,
                 ]}>
                 {isOnline ? 'Available' : 'Not Available'}
               </Text>
             </View>
+          </View>
+
+          {/* Bottom Row: Explanatory Subtext on left, Toggle Switch on right */}
+          <View style={styles.statusBottomRow}>
+            <Text style={styles.statusSubText}>
+              {isOnline
+                ? "You're online now and ready for jobs."
+                : "You're offline now"}
+            </Text>
+
             <Switch
               value={isOnline}
               onValueChange={toggleOnlineStatus}
-              trackColor={{ false: '#E4E7EC', true: '#07522C' }}
-              thumbColor={isOnline ? '#FFFFFF' : '#FFFFFF'}
+              trackColor={{ false: '#FECDCA', true: '#C8E6D3' }}
+              thumbColor={isOnline ? '#07522C' : '#D92D20'}
             />
           </View>
         </View>
 
-        {/* Date Selector Dropdown */}
+        {/* Date Selector Dropdown (Matches Figma Comple...) */}
         <View style={styles.filterRow}>
-          <TouchableOpacity style={styles.dateDropdownBtn} activeOpacity={0.8}>
-            <Text style={styles.dateDropdownText}>{selectedPeriod}</Text>
-            <Icon name="chevron-down" size={16} color="#344054" style={{ marginLeft: 6 }} />
-          </TouchableOpacity>
+          <View style={styles.dropdownWrapper}>
+            <TouchableOpacity
+              style={[
+                styles.dateDropdownBtn,
+                periodDropdownOpen && styles.dateDropdownBtnOpen,
+              ]}
+              activeOpacity={0.8}
+              onPress={() => setPeriodDropdownOpen(prev => !prev)}>
+              <Text style={styles.dateDropdownText}>{selectedPeriod}</Text>
+              <Icon
+                name={periodDropdownOpen ? 'chevron-up' : 'chevron-down'}
+                size={16}
+                color="#344054"
+                style={{ marginLeft: 6 }}
+              />
+            </TouchableOpacity>
+
+            {periodDropdownOpen && (
+              <View style={styles.dropdownMenu}>
+                {periodOptions.map((option, idx) => (
+                  <TouchableOpacity
+                    key={option}
+                    style={[
+                      styles.dropdownItem,
+                      idx === periodOptions.length - 1 && { borderBottomWidth: 0 },
+                      selectedPeriod === option && styles.dropdownItemActive,
+                    ]}
+                    onPress={() => {
+                      setSelectedPeriod(option);
+                      setPeriodDropdownOpen(false);
+                    }}>
+                    <Text
+                      style={[
+                        styles.dropdownItemText,
+                        selectedPeriod === option && styles.dropdownItemTextActive,
+                      ]}>
+                      {option}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
         </View>
 
         {/* 2x3 Metric Cards Grid */}
@@ -227,132 +286,183 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 24,
   },
-  promoCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#07522C',
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 16,
-    overflow: 'hidden',
-  },
-  promoTextCol: {
-    flex: 1,
-    paddingRight: 10,
-  },
-  promoTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  promoSubtitle: {
-    fontSize: 12,
-    color: '#D1E9DB',
-    lineHeight: 16,
-  },
-  promoIllustrationBox: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  partnerFigure: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  availabilityCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+  bannerContainer: {
+    width: '100%',
+    aspectRatio: 358 / 119,
     borderRadius: 14,
+    overflow: 'hidden',
+    marginBottom: 16,
+    backgroundColor: '#07522C',
+  },
+  bannerImage: {
+    width: '100%',
+    height: '100%',
+  },
+  statusCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
     borderColor: '#EAECF0',
-    padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
+    elevation: 2,
+    shadowColor: '#101828',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
   },
-  availabilityLeft: {
-    flex: 1,
-  },
-  statusIndicatorRow: {
+  statusTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
-  statusDot: {
+  statusTitleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusRing: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  statusRingOnline: {
+    borderColor: '#12B76A',
+  },
+  statusRingOffline: {
+    borderColor: '#F04438',
+  },
+  statusInnerDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: 6,
   },
-  statusDotOnline: {
-    backgroundColor: '#10B981',
+  statusInnerDotOnline: {
+    backgroundColor: '#12B76A',
   },
-  statusDotOffline: {
-    backgroundColor: '#EF4444',
+  statusInnerDotOffline: {
+    backgroundColor: '#F04438',
   },
   statusTitleText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#1D2939',
   },
-  statusSubText: {
-    fontSize: 12,
-    color: '#667085',
-  },
-  availabilityRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  availabilityTag: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 8,
-  },
-  tagOnline: {
-    backgroundColor: '#E7F4EB',
-  },
-  tagOffline: {
-    backgroundColor: '#FEE4E2',
-  },
-  tagText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  tagTextOnline: {
+  statusTitleOnline: {
     color: '#07522C',
   },
-  tagTextOffline: {
+  statusTitleOffline: {
     color: '#D92D20',
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  statusBadgeOnline: {
+    borderColor: '#D0D5DD',
+    backgroundColor: '#FFFFFF',
+  },
+  statusBadgeOffline: {
+    borderColor: '#D0D5DD',
+    backgroundColor: '#FFFFFF',
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  statusBadgeTextOnline: {
+    color: '#07522C',
+  },
+  statusBadgeTextOffline: {
+    color: '#F04438',
+  },
+  statusBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  statusSubText: {
+    fontSize: 13,
+    color: '#475467',
+    flex: 1,
+    paddingRight: 10,
   },
   filterRow: {
     alignItems: 'flex-end',
     marginBottom: 14,
+    zIndex: 100,
+  },
+  dropdownWrapper: {
+    position: 'relative',
+    width: 120,
+    zIndex: 100,
   },
   dateDropdownBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#D0D5DD',
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
+    shadowColor: '#101828',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  dateDropdownBtnOpen: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    borderBottomColor: '#F2F4F7',
   },
   dateDropdownText: {
     fontSize: 13,
     fontWeight: '600',
     color: '#344054',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 36,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#D0D5DD',
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+    shadowColor: '#101828',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 5,
+    zIndex: 999,
+  },
+  dropdownItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F4F7',
+  },
+  dropdownItemActive: {
+    backgroundColor: '#F8F9FA',
+  },
+  dropdownItemText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#344054',
+  },
+  dropdownItemTextActive: {
+    color: '#07522C',
+    fontWeight: '700',
   },
   metricGrid: {
     flexDirection: 'row',

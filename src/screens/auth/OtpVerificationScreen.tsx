@@ -27,6 +27,12 @@ const OtpVerificationScreen = () => {
   const mobile = route?.params?.mobile || '';
   const { login } = useAuth();
 
+  const displayMobile = mobile
+    ? mobile.length === 10
+      ? `${mobile.slice(0, 5)} ${mobile.slice(5)}`
+      : mobile
+    : '98765 43210';
+
   const inputRefs = [
     useRef<any>(null),
     useRef<any>(null),
@@ -131,10 +137,10 @@ const OtpVerificationScreen = () => {
 
         {/* Center Verification Section */}
         <View style={styles.centerSection}>
-          {/* Masked Mobile Input Display */}
+          {/* Mobile Input Display */}
           <View style={styles.inputContainer}>
             <Icon name="cellphone" size={22} color="#1D2939" style={styles.inputIcon} />
-            <Text style={styles.maskedNumberText}>XXXXX XXXXX</Text>
+            <Text style={styles.maskedNumberText}>{displayMobile}</Text>
           </View>
 
           {/* 4 Digit OTP Boxes */}
@@ -145,6 +151,7 @@ const OtpVerificationScreen = () => {
                   ref={inputRefs[idx]}
                   style={styles.otpInput}
                   keyboardType="number-pad"
+                  inputMode="numeric"
                   maxLength={1}
                   value={digit}
                   onChangeText={v => handleOtpChange(v, idx)}
@@ -203,8 +210,8 @@ const styles = StyleSheet.create({
   topLogoSection: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 40,
-    marginBottom: 24,
+    top:'17%'
+
   },
   centerSection: {
     width: '100%',
@@ -226,8 +233,8 @@ const styles = StyleSheet.create({
   },
   maskedNumberText: {
     fontSize: 15,
-    color: '#98A2B3',
-    letterSpacing: 2,
+    color: '#1D2939',
+    letterSpacing: 1,
     fontWeight: '500',
   },
   otpBoxesRow: {

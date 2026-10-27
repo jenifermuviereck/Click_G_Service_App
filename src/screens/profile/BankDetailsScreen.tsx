@@ -67,7 +67,7 @@ const BankDetailsScreen = () => {
           <TextInput
             style={styles.textInput}
             value={accountHolder}
-            onChangeText={setAccountHolder}
+            onChangeText={v => setAccountHolder(v.replace(/[^a-zA-Z\s]/g, ''))}
             placeholder="Account Holder Name"
             placeholderTextColor="#98A2B3"
           />
@@ -78,10 +78,12 @@ const BankDetailsScreen = () => {
           <TextInput
             style={styles.textInput}
             value={accountNumber}
-            onChangeText={setAccountNumber}
+            onChangeText={v => setAccountNumber(v.replace(/[^0-9]/g, '').slice(0, 18))}
             placeholder="123456789012"
             placeholderTextColor="#98A2B3"
             keyboardType="number-pad"
+            inputMode="numeric"
+            maxLength={18}
           />
         </View>
 
@@ -90,10 +92,11 @@ const BankDetailsScreen = () => {
           <TextInput
             style={styles.textInput}
             value={ifscCode}
-            onChangeText={v => setIfscCode(v.toUpperCase())}
+            onChangeText={v => setIfscCode(v.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 11))}
             placeholder="HDFC0001234"
             placeholderTextColor="#98A2B3"
             autoCapitalize="characters"
+            maxLength={11}
           />
         </View>
         <Text style={styles.bankBranchText}>HDFC Bank • BTM Layout, Bengaluru</Text>

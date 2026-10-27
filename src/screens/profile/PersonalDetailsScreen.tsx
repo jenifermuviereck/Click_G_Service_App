@@ -68,7 +68,7 @@ const PersonalDetailsScreen = () => {
           <TextInput
             style={styles.textInput}
             value={fullName}
-            onChangeText={setFullName}
+            onChangeText={v => setFullName(v.replace(/[^a-zA-Z\s]/g, ''))}
             placeholder="Full Name"
             placeholderTextColor="#98A2B3"
           />
@@ -136,10 +136,11 @@ const PersonalDetailsScreen = () => {
               <TextInput
                 style={styles.textInput}
                 value={pincode}
-                onChangeText={setPincode}
+                onChangeText={v => setPincode(v.replace(/[^0-9]/g, '').slice(0, 6))}
                 placeholder="560076"
                 placeholderTextColor="#98A2B3"
                 keyboardType="number-pad"
+                inputMode="numeric"
                 maxLength={6}
               />
             </View>

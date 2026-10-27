@@ -46,7 +46,27 @@ const PartnerRegistrationScreen = () => {
   });
 
   const updateField = (key: string, value: string) => {
-    setFormData(prev => ({ ...prev, [key]: value }));
+    let cleanVal = value;
+    if (key === 'mobile') {
+      // Only digits, maximum 10 digits
+      cleanVal = value.replace(/[^0-9]/g, '').slice(0, 10);
+    } else if (key === 'pincode') {
+      // PIN code: strictly 6 digits
+      cleanVal = value.replace(/[^0-9]/g, '').slice(0, 6);
+    } else if (key === 'experienceYears') {
+      // Experience: strictly digits, max 2
+      cleanVal = value.replace(/[^0-9]/g, '').slice(0, 2);
+    } else if (key === 'accountNumber') {
+      // Bank Account: strictly digits, up to 18
+      cleanVal = value.replace(/[^0-9]/g, '').slice(0, 18);
+    } else if (key === 'ifscCode') {
+      // IFSC Code: uppercase alphanumeric, max 11
+      cleanVal = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 11);
+    } else if (key === 'fullName' || key === 'accountHolderName') {
+      // Names: strictly alphabetical letters and spaces
+      cleanVal = value.replace(/[^a-zA-Z\s]/g, '');
+    }
+    setFormData(prev => ({ ...prev, [key]: cleanVal }));
   };
 
   const showNotification = (msg: string) => {
@@ -144,9 +164,11 @@ const PartnerRegistrationScreen = () => {
           style={styles.textInput}
           value={formData.mobile}
           onChangeText={v => updateField('mobile', v)}
-          placeholder="+91 Mobile Number"
+          placeholder="Mobile Number (10 digits)"
           placeholderTextColor="#98A2B3"
-          keyboardType="phone-pad"
+          keyboardType="number-pad"
+          inputMode="numeric"
+          maxLength={10}
         />
       </View>
       <Text style={styles.helperText}>Verified mobile number</Text>
@@ -202,6 +224,7 @@ const PartnerRegistrationScreen = () => {
           placeholder="560076"
           placeholderTextColor="#98A2B3"
           keyboardType="number-pad"
+          inputMode="numeric"
           maxLength={6}
         />
       </View>
@@ -215,6 +238,8 @@ const PartnerRegistrationScreen = () => {
           placeholder="5"
           placeholderTextColor="#98A2B3"
           keyboardType="number-pad"
+          inputMode="numeric"
+          maxLength={2}
         />
       </View>
       <Text style={styles.helperText}>Enter total years of service experience.</Text>
@@ -295,6 +320,8 @@ const PartnerRegistrationScreen = () => {
           placeholder="123456789012"
           placeholderTextColor="#98A2B3"
           keyboardType="number-pad"
+          inputMode="numeric"
+          maxLength={18}
         />
       </View>
 
