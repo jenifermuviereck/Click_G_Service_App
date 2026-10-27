@@ -29,7 +29,7 @@ const SettingsScreen = () => {
         <Text className="text-lg sm:text-xl font-bold text-slate-900">Settings</Text>
       </View>
 
-      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-12" showsVerticalScrollIndicator={false}>
         {/* Notifications Section */}
         <Text className="text-xs sm:text-sm font-bold text-slate-900 mb-2.5">Notifications</Text>
         <View className="bg-white rounded-2xl border border-slate-200 p-4 mb-5 shadow-sm">

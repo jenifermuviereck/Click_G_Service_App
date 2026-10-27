@@ -57,7 +57,7 @@ const AcceptRequestScreen = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       {/* Top Header - Left-aligned Title with Back Button */}
       <View className="flex-row items-center px-4 py-3.5 bg-white border-b border-slate-100">
         <TouchableOpacity
@@ -69,7 +69,8 @@ const AcceptRequestScreen = () => {
         <Text className="text-lg sm:text-xl font-bold text-slate-900">Accept Request</Text>
       </View>
 
-      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
+      <View className="flex-1 bg-slate-50">
+        <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
         {/* Section Heading */}
         <View className="mb-4">
           <Text className="text-base sm:text-lg font-bold text-slate-900">New requests</Text>
@@ -145,6 +146,7 @@ const AcceptRequestScreen = () => {
           ))
         )}
       </ScrollView>
+      </View>
 
       {/* Reject Confirmation Modal */}
       <Modal

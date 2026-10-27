@@ -34,7 +34,7 @@ const HelpSupportScreen = () => {
         <Text className="text-lg sm:text-xl font-bold text-slate-900">Help &amp; Support</Text>
       </View>
 
-      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-12" showsVerticalScrollIndicator={false}>
         <Text className="text-lg sm:text-xl font-bold text-slate-900 mb-1">How can we help?</Text>
         <Text className="text-xs sm:text-[13px] text-slate-500 mb-5 leading-5">
           For help with bookings, payments or verification, contact the partner support team.

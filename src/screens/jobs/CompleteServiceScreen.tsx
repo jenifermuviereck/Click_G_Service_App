@@ -9,13 +9,14 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 import UploadPickerModal, { PickedFile } from '../../components/UploadPickerModal';
 import { useJobs } from '../../context/JobContext';
 
 const CompleteServiceScreen = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { completeJob, activeJob } = useJobs();
@@ -83,7 +84,7 @@ const CompleteServiceScreen = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       {/* Top Header - Left-aligned Title with Back Button */}
       <View className="flex-row items-center px-4 py-3.5 bg-white border-b border-slate-100">
         <TouchableOpacity
@@ -95,7 +96,8 @@ const CompleteServiceScreen = () => {
         <Text className="text-lg sm:text-xl font-bold text-slate-900">Complete Service</Text>
       </View>
 
-      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
+      <View className="flex-1 bg-slate-50">
+        <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
         {/* Service Summary Card */}
         <View className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 shadow-sm">
           <View className="flex-row justify-between items-center mb-1">
@@ -243,9 +245,12 @@ const CompleteServiceScreen = () => {
           </View>
         </View>
       </ScrollView>
+      </View>
 
       {/* Bottom Submit Completion Button */}
-      <View className="p-4 bg-white border-t border-slate-100">
+      <View
+        style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+        className="p-4 bg-white border-t border-slate-100">
         <TouchableOpacity
           className="bg-brand-green w-full h-12 rounded-xl items-center justify-center shadow-md shadow-brand-green/20"
           activeOpacity={0.88}

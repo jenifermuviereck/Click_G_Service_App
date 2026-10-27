@@ -5,11 +5,12 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 
 const CompletionConfirmedScreen = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
 
@@ -25,7 +26,7 @@ const CompletionConfirmedScreen = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       {/* Top Header - Left-aligned Title with Back Button */}
       <View className="flex-row items-center px-4 py-3.5 bg-white border-b border-slate-100">
         <TouchableOpacity
@@ -37,7 +38,8 @@ const CompletionConfirmedScreen = () => {
         <Text className="text-lg sm:text-xl font-bold text-slate-900">Completion confirmed</Text>
       </View>
 
-      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6 items-center" showsVerticalScrollIndicator={false}>
+      <View className="flex-1 bg-slate-50">
+        <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6 items-center" showsVerticalScrollIndicator={false}>
         {/* Success Icon */}
         <View className="mb-4 mt-2">
           <View className="w-16 h-16 rounded-full bg-emerald-100 items-center justify-center">
@@ -106,9 +108,12 @@ const CompletionConfirmedScreen = () => {
           added to your pending earnings.
         </Text>
       </ScrollView>
+      </View>
 
       {/* Bottom Action Buttons */}
-      <View className="p-4 bg-white border-t border-slate-100 items-center">
+      <View
+        style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+        className="p-4 bg-white border-t border-slate-100 items-center">
         <TouchableOpacity
           className="w-full h-12 bg-brand-green rounded-xl items-center justify-center mb-2.5 shadow-md shadow-brand-green/20"
           activeOpacity={0.88}

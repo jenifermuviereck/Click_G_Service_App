@@ -56,7 +56,7 @@ const DocumentsVerificationScreen = () => {
         <Text className="text-lg sm:text-xl font-bold text-slate-900">Documents &amp; Verification</Text>
       </View>
 
-      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-12" showsVerticalScrollIndicator={false}>
         {/* Verified Partner Banner Card */}
         <View className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 mb-5">
           <View className="flex-row items-center mb-3">

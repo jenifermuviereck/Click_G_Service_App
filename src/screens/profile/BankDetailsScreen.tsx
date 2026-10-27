@@ -9,11 +9,12 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 
 const BankDetailsScreen = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
 
   const [accountHolder, setAccountHolder] = useState('Kumar');
@@ -34,7 +35,7 @@ const BankDetailsScreen = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       {/* Top Header - Left-aligned Title with Back Button */}
       <View className="flex-row items-center px-4 py-3.5 bg-white border-b border-slate-100">
         <TouchableOpacity
@@ -116,7 +117,9 @@ const BankDetailsScreen = () => {
       </ScrollView>
 
       {/* Save Button */}
-      <View className="p-4 bg-white border-t border-slate-100">
+      <View
+        style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+        className="p-4 bg-white border-t border-slate-100">
         <TouchableOpacity
           className="bg-brand-green w-full h-12 rounded-xl items-center justify-center shadow-md shadow-brand-green/20"
           activeOpacity={0.88}

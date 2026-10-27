@@ -10,7 +10,7 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 import UploadPickerModal, { PickedFile } from '../../components/UploadPickerModal';
@@ -19,6 +19,7 @@ import authService from '../../services/authService';
 const TOTAL_STEPS = 4;
 
 const PartnerRegistrationScreen = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const initialMobile = route?.params?.mobile || '+91 98765 43210';
@@ -417,7 +418,7 @@ const PartnerRegistrationScreen = () => {
   // Render Submitted / Success Screen
   if (isSubmitted) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
+      <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
         {/* Header - Left-aligned Title with Back Button */}
         <View className="flex-row items-center px-4 py-3.5 border-b border-slate-100">
           <TouchableOpacity
@@ -456,7 +457,9 @@ const PartnerRegistrationScreen = () => {
         </View>
 
         {/* Back to Login Button */}
-        <View className="p-4 bg-white border-t border-slate-100">
+        <View
+          style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+          className="p-4 bg-white border-t border-slate-100">
           <TouchableOpacity
             className="w-full h-12 bg-brand-green rounded-xl items-center justify-center shadow-md shadow-brand-green/20"
             activeOpacity={0.88}
@@ -469,7 +472,7 @@ const PartnerRegistrationScreen = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       {/* Top Header - Left-aligned Title with Back Button */}
       <View className="flex-row items-center px-4 py-3.5 border-b border-slate-100">
         <TouchableOpacity
@@ -494,7 +497,9 @@ const PartnerRegistrationScreen = () => {
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <View className="p-4 bg-white border-t border-slate-100">
+      <View
+        style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+        className="p-4 bg-white border-t border-slate-100">
         {currentStep < 4 ? (
           <View className="flex-row gap-3">
             <TouchableOpacity
