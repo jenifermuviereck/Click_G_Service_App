@@ -71,7 +71,7 @@ const LoginScreen = () => {
         keyboardShouldPersistTaps="handled">
         <View className="w-full max-w-sm self-center py-6">
           {/* Logo Section */}
-          <View className="items-center justify-center mb-8 sm:mb-10">
+          <View className="items-center justify-center mb-6 sm:mb-8">
             <ClickGLogo size="large" showTagline={true} />
           </View>
 
@@ -92,7 +92,7 @@ const LoginScreen = () => {
 
           {/* Send OTP Button (Centered Pill) */}
           <TouchableOpacity
-            className="bg-brand-green w-48 sm:w-52 h-12 rounded-xl self-center items-center justify-center shadow-md shadow-brand-green/20 mb-8 sm:mb-10"
+            className="bg-brand-green w-48 sm:w-52 h-12 rounded-xl self-center items-center justify-center shadow-md shadow-brand-green/20 mb-6 sm:mb-8"
             activeOpacity={0.85}
             disabled={loading}
             onPress={handleSendOtp}>

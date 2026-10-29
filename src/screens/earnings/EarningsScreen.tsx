@@ -40,20 +40,20 @@ const EarningsScreen: React.FC<EarningsScreenProps> = ({ hideBottomNav = false, 
 
       <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
         {/* Top 3 Summary Cards */}
-        <View className="flex-row gap-2 sm:gap-3 mb-4">
+        <View className="flex-row gap-1.5 sm:gap-3 mb-4">
           {/* Today / Component 22 */}
-          <View className="flex-1 bg-white rounded-2xl border border-slate-200 p-3 shadow-sm relative z-50">
-            <View className="flex-row items-center justify-between mb-1.5">
-              <Text className="text-[11px] sm:text-xs text-slate-500 font-medium" numberOfLines={1}>
+          <View className="flex-1 bg-white rounded-2xl border border-slate-200 px-2 py-2.5 sm:p-3 shadow-sm relative z-50">
+            <View className="flex-row items-center justify-between mb-1">
+              <Text className="text-[10px] sm:text-xs text-slate-500 font-medium" numberOfLines={1}>
                 {selectedTimeframe}
               </Text>
               <TouchableOpacity
                 onPress={() => setMenuOpen(!menuOpen)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Icon name="dots-vertical" size={16} color="#667085" />
+                <Icon name="dots-vertical" size={15} color="#667085" />
               </TouchableOpacity>
             </View>
-            <Text className="text-sm sm:text-base font-extrabold text-slate-900">
+            <Text className="text-xs sm:text-sm md:text-base font-extrabold text-slate-900" numberOfLines={1} adjustsFontSizeToFit>
               ₹{summary.todayTotal.toLocaleString()}
             </Text>
 
@@ -77,25 +77,25 @@ const EarningsScreen: React.FC<EarningsScreenProps> = ({ hideBottomNav = false, 
           </View>
 
           {/* This month */}
-          <View className="flex-1 bg-white rounded-2xl border border-slate-200 p-3 shadow-sm">
-            <View className="flex-row items-center justify-between mb-1.5">
-              <Text className="text-[11px] sm:text-xs text-slate-500 font-medium" numberOfLines={1}>
+          <View className="flex-1 bg-white rounded-2xl border border-slate-200 px-2 py-2.5 sm:p-3 shadow-sm">
+            <View className="flex-row items-center justify-between mb-1">
+              <Text className="text-[10px] sm:text-xs text-slate-500 font-medium" numberOfLines={1}>
                 This month
               </Text>
             </View>
-            <Text className="text-sm sm:text-base font-extrabold text-slate-900">
+            <Text className="text-xs sm:text-sm md:text-base font-extrabold text-slate-900" numberOfLines={1} adjustsFontSizeToFit>
               ₹{summary.thisMonthTotal.toLocaleString()}
             </Text>
           </View>
 
           {/* Pending Payments */}
-          <View className="flex-1 bg-white rounded-2xl border border-slate-200 p-3 shadow-sm">
-            <View className="flex-row items-center justify-between mb-1.5">
-              <Text className="text-[11px] sm:text-xs text-slate-500 font-medium" numberOfLines={1}>
+          <View className="flex-1 bg-white rounded-2xl border border-slate-200 px-2 py-2.5 sm:p-3 shadow-sm">
+            <View className="flex-row items-center justify-between mb-1">
+              <Text className="text-[10px] sm:text-xs text-slate-500 font-medium" numberOfLines={1}>
                 Pending
               </Text>
             </View>
-            <Text className="text-sm sm:text-base font-extrabold text-amber-700">
+            <Text className="text-xs sm:text-sm md:text-base font-extrabold text-amber-700" numberOfLines={1} adjustsFontSizeToFit>
               ₹{summary.pendingTotal.toLocaleString()}
             </Text>
           </View>

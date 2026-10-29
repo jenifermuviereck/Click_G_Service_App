@@ -192,7 +192,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ hideBottomNav = false, onSwitch
           {metrics.map((item, index) => (
             <TouchableOpacity
               key={index}
-              className="w-[48%] bg-white rounded-2xl border border-slate-200 p-4 shadow-sm active:scale-[0.98]"
+              className="w-[48%] bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 shadow-sm justify-between min-h-[92px] active:scale-[0.98]"
               activeOpacity={0.85}
               onPress={() => {
                 if (item.tab && onSwitchTab) {
@@ -201,7 +201,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ hideBottomNav = false, onSwitch
                   navigation.navigate(item.route);
                 }
               }}>
-              <Text className="text-xs sm:text-[13px] font-medium text-slate-500 mb-2">{item.label}</Text>
+              <Text className="text-xs sm:text-[13px] font-medium text-slate-500 mb-1" numberOfLines={2}>
+                {item.label}
+              </Text>
               <Text className="text-xl sm:text-2xl font-extrabold text-slate-900">{item.count}</Text>
             </TouchableOpacity>
           ))}

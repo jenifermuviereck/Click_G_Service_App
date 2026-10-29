@@ -76,7 +76,7 @@ const ActiveJobScreen = () => {
         {/* Job Details Card */}
         <View className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 shadow-sm">
           <View className="flex-row justify-between items-center mb-1">
-            <Text className="text-base sm:text-lg font-bold text-slate-900">{job.category}</Text>
+            <Text className="text-base sm:text-lg font-bold text-slate-900 flex-1 mr-2" numberOfLines={1}>{job.category}</Text>
             <View className="bg-emerald-100 px-2.5 py-0.5 rounded-full">
               <Text className="text-[10px] sm:text-xs font-bold text-emerald-800">Accepted</Text>
             </View>

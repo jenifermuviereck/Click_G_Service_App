@@ -161,7 +161,7 @@ const MyJobsScreen: React.FC<MyJobsScreenProps> = ({ hideBottomNav = false, onBa
               {upcomingJobs.map(job => (
                 <View key={job.id} className="bg-white rounded-2xl border border-slate-200 p-4 mb-3 shadow-sm">
                   <View className="flex-row justify-between items-center mb-1">
-                    <Text className="text-sm sm:text-base font-bold text-slate-900 flex-1 mr-2">{job.title}</Text>
+                    <Text className="text-sm sm:text-base font-bold text-slate-900 flex-1 mr-2" numberOfLines={1}>{job.title}</Text>
                     <View className="bg-blue-100 px-2.5 py-0.5 rounded-full">
                       <Text className="text-[10px] sm:text-xs font-bold text-blue-800">{job.badge}</Text>
                     </View>
@@ -199,7 +199,7 @@ const MyJobsScreen: React.FC<MyJobsScreenProps> = ({ hideBottomNav = false, onBa
               {ongoingJobs.map(job => (
                 <View key={job.id} className="bg-white rounded-2xl border border-slate-200 p-4 mb-3 shadow-sm">
                   <View className="flex-row justify-between items-center mb-1">
-                    <Text className="text-sm sm:text-base font-bold text-slate-900 flex-1 mr-2">{job.title}</Text>
+                    <Text className="text-sm sm:text-base font-bold text-slate-900 flex-1 mr-2" numberOfLines={1}>{job.title}</Text>
                     <View className="bg-amber-100 px-2.5 py-0.5 rounded-full">
                       <Text className="text-[10px] sm:text-xs font-bold text-amber-800">{job.badge}</Text>
                     </View>
@@ -237,7 +237,7 @@ const MyJobsScreen: React.FC<MyJobsScreenProps> = ({ hideBottomNav = false, onBa
               {completedJobs.map(job => (
                 <View key={job.id} className="bg-white rounded-2xl border border-slate-200 p-4 mb-3 shadow-sm">
                   <View className="flex-row justify-between items-center mb-1">
-                    <Text className="text-sm sm:text-base font-bold text-slate-900 flex-1 mr-2">{job.title}</Text>
+                    <Text className="text-sm sm:text-base font-bold text-slate-900 flex-1 mr-2" numberOfLines={1}>{job.title}</Text>
                     <View className="bg-emerald-100 px-2.5 py-0.5 rounded-full">
                       <Text className="text-[10px] sm:text-xs font-bold text-emerald-800">{job.badge}</Text>
                     </View>
