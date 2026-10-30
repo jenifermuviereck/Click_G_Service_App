@@ -49,6 +49,12 @@ const PartnerRegistrationScreen = () => {
     phonePeUpi: 'kj987654321oabc',
   });
 
+  /**
+   * Sanitizes and updates a form field in state with field-specific validation regex.
+   *
+   * @param {string} key - Field key identifier in formData.
+   * @param {string} value - Raw input value typed by user.
+   */
   const updateField = (key: string, value: string) => {
     let cleanVal = value;
     if (key === 'mobile') {
@@ -89,6 +95,11 @@ const PartnerRegistrationScreen = () => {
     }
   };
 
+  /**
+   * Receives picked document or camera photo and updates corresponding form attachment slot.
+   *
+   * @param {PickedFile} file - Picked file object containing uri, name, and size.
+   */
   const handleFilePicked = (file: PickedFile) => {
     if (uploadTarget === 'profile') {
       setProfilePhoto(file.uri);
@@ -103,6 +114,10 @@ const PartnerRegistrationScreen = () => {
     setUploadTarget(null);
   };
 
+  /**
+   * Submits all 4 steps of partner registration (personal, KYC docs, bank payout) to authService.
+   * On success, marks isSubmitted as true to display the confirmation success state.
+   */
   const handleSubmit = async () => {
     try {
       await authService.registerPartner({

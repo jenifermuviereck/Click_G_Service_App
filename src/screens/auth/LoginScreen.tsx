@@ -21,6 +21,11 @@ const LoginScreen = () => {
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation<any>();
 
+  /**
+   * Displays a native Toast or Alert notification to the user.
+   *
+   * @param {string} msg - The message text to show.
+   */
   const showNotification = (msg: string) => {
     if (Platform.OS === 'android') {
       ToastAndroid.show(msg, ToastAndroid.SHORT);
@@ -29,6 +34,10 @@ const LoginScreen = () => {
     }
   };
 
+  /**
+   * Validates the 10-digit mobile number and requests an OTP from authService.
+   * On success, navigates to the OTP Verification screen with the mobile number.
+   */
   const handleSendOtp = async () => {
     if (!mobile.trim()) {
       showNotification('Please enter mobile number');
@@ -56,6 +65,11 @@ const LoginScreen = () => {
     }
   };
 
+  /**
+   * Sanitizes input so that only numeric characters up to 10 digits are saved.
+   *
+   * @param {string} text - User input from TextInput.
+   */
   const handleMobileChange = (text: string) => {
     // Strict numeric validation: only allows 0-9 digits up to 10 characters
     const digitsOnly = text.replace(/[^0-9]/g, '');
