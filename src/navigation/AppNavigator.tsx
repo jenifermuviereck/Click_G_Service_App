@@ -23,6 +23,11 @@ import HelpSupportScreen from '../screens/profile/HelpSupportScreen';
 import SettingsScreen from '../screens/profile/SettingsScreen';
 import { useAuth } from '../context/AuthContext';
 
+// Dev-only: notification test screen (excluded from release builds automatically)
+const NotificationTestScreen = __DEV__
+  ? require('../screens/dev/NotificationTestScreen').default
+  : null;
+
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
@@ -78,6 +83,16 @@ const AppNavigator = () => {
         <Stack.Screen name="BankDetails" component={BankDetailsScreen} />
         <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
+
+        {/* Dev Lab — only available in development builds */}
+        {(__DEV__ && NotificationTestScreen) ? (
+          <Stack.Screen
+            name="NotificationTest"
+            component={NotificationTestScreen}
+            options={{ title: '🔬 Notif Lab', headerShown: true }}
+          />
+        ) : null}
+
       </Stack.Navigator>
     </NavigationContainer>
   );

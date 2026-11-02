@@ -97,6 +97,29 @@ const SettingsScreen = () => {
             <Text className="text-xs sm:text-sm font-semibold text-slate-900">1.0.0</Text>
           </View>
         </View>
+
+        {/* Dev Tools — only visible in development */}
+        {__DEV__ && (
+          <View style={{ marginTop: 20 }}>
+            <Text className="text-xs sm:text-sm font-bold text-slate-900 mb-2.5">🛠️ Developer Tools</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('NotificationTest')}
+              style={{
+                backgroundColor: '#FF6B00',
+                borderRadius: 14,
+                paddingVertical: 14,
+                paddingHorizontal: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              activeOpacity={0.8}>
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>
+                🔬  Open Notification Test Lab
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

@@ -87,8 +87,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ hideBottomNav = false, onSwitch
         <View
           className={`rounded-2xl border p-4 mb-4 shadow-sm ${
             isOnline
-              ? 'bg-emerald-50/60 border-emerald-200'
-              : 'bg-red-50/60 border-red-200'
+              ? 'bg-emerald-50 border-emerald-50'
+              : 'bg-red-50 border-red-50'
           }`}>
           {/* Top Row: Icon + Title on left, Badge on right */}
           <View className="flex-row items-center justify-between mb-2">
