@@ -1,26 +1,25 @@
 /**
  * @file config.ts
- * @description API Environment Configuration.
+ * @description API Environment Configuration for Click G Service App.
  *
- * Provides base URLs for different application environments (testing, production).
- * Change the active environment string to toggle between backend endpoints.
+ * Base URL provided by Yetlo API team:
+ * https://cliickgserviceman.yetloapps.com/api/docs/Person-App
  */
 
 const Config = {
   /**
-   * Staging / Testing backend API environment
+   * Primary API Base URL
    */
   testing: {
-    baseURL: 'https://testing-api.yetlocart.com/api',
+    baseURL: 'https://cliickgserviceman.yetloapps.com',
   },
 
   /**
    * Production live backend API environment
    */
   production: {
-    baseURL: 'https://api.yetlocart.com/api',
+    baseURL: 'https://cliickgserviceman.yetloapps.com',
   },
 };
 
 export default Config;
-

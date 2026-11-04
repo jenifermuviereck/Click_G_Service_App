@@ -13,7 +13,6 @@
 import {
   getMessaging,
   AuthorizationStatus,
-  type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
 import notifee, {
   AndroidImportance,
@@ -22,6 +21,7 @@ import notifee, {
   Notification,
 } from '@notifee/react-native';
 import { Platform } from 'react-native';
+import { addNotification } from './notificationHistoryService';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -127,10 +127,19 @@ export async function getFCMToken(): Promise<string | null> {
  * Triggered when a push arrives while the app is in the foreground.
  */
 export async function displayJobNotification(
-  remoteMessage: FirebaseMessagingTypes.RemoteMessage,
+  remoteMessage: any,
 ): Promise<void> {
   const { notification, data } = remoteMessage;
-  const isNewJob = (data as JobNotificationPayload)?.type === 'new_job';
+  const isNewJob = (data as unknown as JobNotificationPayload)?.type === 'new_job';
+
+  // Persist incoming notification in local Notification Center history
+  addNotification({
+    title: notification?.title ?? '🔧 New Job Request',
+    body: notification?.body ?? 'You have a new job waiting!',
+    type: isNewJob ? 'new_job' : 'job_update',
+    jobId: (data as any)?.jobId,
+    data: data || {},
+  }).catch(() => {});
 
   await notifee.displayNotification({
     title: notification?.title ?? '🔧 New Job Request',
@@ -181,7 +190,7 @@ export function subscribeToForegroundMessages(
     await displayJobNotification(remoteMessage);
 
     if (onJobReceived && remoteMessage.data) {
-      onJobReceived(remoteMessage.data as JobNotificationPayload);
+      onJobReceived(remoteMessage.data as unknown as JobNotificationPayload);
     }
   });
 
@@ -203,7 +212,7 @@ export function registerBackgroundNotificationActions(
 ): void {
   notifee.onBackgroundEvent(async ({ type, detail }) => {
     const { notification, pressAction } = detail;
-    const jobId = (notification?.data as JobNotificationPayload)?.jobId;
+    const jobId = (notification?.data as unknown as JobNotificationPayload)?.jobId;
 
     if (type === EventType.ACTION_PRESS && pressAction?.id === 'accept' && jobId) {
       onAccept(jobId);
@@ -226,7 +235,7 @@ export function registerBackgroundNotificationActions(
  *
  * @returns The remote message that caused the open, or `null`.
  */
-export async function getInitialNotification(): Promise<FirebaseMessagingTypes.RemoteMessage | null> {
+export async function getInitialNotification(): Promise<any | null> {
   return getMessaging().getInitialNotification();
 }
 
@@ -235,7 +244,7 @@ export async function getInitialNotification(): Promise<FirebaseMessagingTypes.R
  * @returns Unsubscribe function.
  */
 export function subscribeToNotificationOpenedApp(
-  callback: (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => void,
+  callback: (remoteMessage: any) => void,
 ): () => void {
   return getMessaging().onNotificationOpenedApp(callback);
 }

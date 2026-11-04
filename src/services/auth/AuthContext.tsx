@@ -1,10 +1,9 @@
 /**
  * @file AuthContext.tsx
- * @description Global Authentication & Partner State Context.
+ * @description Global Authentication, Attendance, Device FCM & GPS Location State Context.
  *
- * Implements the session management provider for ClickG Service App, matching the
- * architectural pattern of the Driver App. Handles session restoration on app startup,
- * token caching, user profile updates, and active duty status.
+ * Implements session management, active duty status via Attendance API,
+ * background GPS location tracking, and FCM push token registration.
  */
 
 import React, {
@@ -26,74 +25,53 @@ import {
   getOnlineStatus,
   saveOnlineStatus,
 } from '../storage/authStorage';
+import {
+  getCurrentAttendance,
+  enableAttendance,
+  disableAttendance,
+} from '../../common/api/attendanceApi';
+import { logoutApi } from '../../common/api/authApi';
+import {
+  syncDeviceToken,
+  setupTokenRefreshListener,
+} from '../notifications/deviceTokenService';
+import {
+  getCurrentPosition,
+  startLocationTracking,
+  stopLocationTracking,
+} from '../location/locationService';
 import { UserProfile } from '../../types';
 
-/**
- * Shape of the Authentication Context state and dispatch actions.
- */
 export interface AuthContextValue {
-  /** True when the user is logged in with an active access token */
   isAuthenticated: boolean;
-
-  /** True while the session is being restored from local storage on app startup */
   isAuthLoading: boolean;
-
-  /** Alias for isAuthLoading to maintain backward compatibility with existing screens */
   isLoading: boolean;
-
-  /** The active service partner's profile object */
   user: UserProfile | null;
-
-  /** The active session bearer JWT token string */
   token: string | null;
-
-  /** Online/Offline job acceptance status of the service partner */
   isOnline: boolean;
-
-  /** Explicitly updates the authenticated flag */
   setAuthenticated: (value: boolean) => void;
-
-  /** Logs in the user with an access token and user profile */
   login: (token: string, user: UserProfile) => Promise<void>;
-
-  /** Clears local credentials and logs out the user */
   logout: () => Promise<void>;
-
-  /** Updates fields on the cached user profile */
   updateUser: (updates: Partial<UserProfile>) => Promise<void>;
-
-  /** Toggles or explicitly sets the partner's online availability status */
   toggleOnlineStatus: (override?: boolean) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export interface AuthProviderProps {
-  children: ReactNode;
-}
-
-/**
- * Root Authentication Provider component.
- *
- * Wrap this near the root of the React Native component tree to make
- * authentication state accessible anywhere via the `useAuth()` hook.
- */
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState(false);
 
-  /**
-   * Directly sets the authentication state.
-   */
   const setAuthenticated = useCallback((value: boolean) => {
     setIsAuthenticated(value);
   }, []);
 
   /**
-   * Restores stored session credentials and online status on initial application launch.
+   * Restores stored session credentials, registers device push token,
+   * and synchronizes online/duty status on initial app launch.
    */
   useEffect(() => {
     const restoreSession = async () => {
@@ -107,15 +85,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (savedToken) {
           setToken(savedToken);
           setIsAuthenticated(true);
+
+          // 1. Sync FCM Push Token
+          syncDeviceToken().catch(() => {});
+
+          // 2. Synchronize real-time on-duty status from backend attendance
+          try {
+            const attendanceRes = await getCurrentAttendance();
+            if (attendanceRes.success && attendanceRes.data) {
+              const liveOnDuty = Boolean(attendanceRes.data.isOnDuty);
+              setIsOnline(liveOnDuty);
+              await saveOnlineStatus(liveOnDuty);
+
+              if (liveOnDuty) {
+                startLocationTracking().catch(() => {});
+              }
+            } else {
+              setIsOnline(savedOnline);
+              if (savedOnline) {
+                startLocationTracking().catch(() => {});
+              }
+            }
+          } catch {
+            setIsOnline(savedOnline);
+          }
         } else {
           setIsAuthenticated(false);
+          setIsOnline(false);
         }
 
         if (savedUser) {
           setUser(savedUser);
         }
-
-        setIsOnline(savedOnline);
       } catch {
         setIsAuthenticated(false);
       } finally {
@@ -124,10 +125,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     restoreSession();
+
+    // Listen to Firebase token refresh
+    const unsubscribeToken = setupTokenRefreshListener();
+    return () => {
+      unsubscribeToken();
+      stopLocationTracking();
+    };
   }, []);
 
   /**
-   * Saves credentials to storage and updates context state upon successful login/verification.
+   * Saves credentials to storage, registers FCM token, and updates context state.
    */
   const login = useCallback(
     async (newToken: string, newUser: UserProfile): Promise<void> => {
@@ -136,6 +144,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setToken(newToken);
         setUser(newUser);
         setIsAuthenticated(true);
+
+        // Register FCM Push Token on login
+        syncDeviceToken().catch(() => {});
+
+        // Fetch initial attendance on login
+        try {
+          const attendanceRes = await getCurrentAttendance();
+          if (attendanceRes.success && attendanceRes.data) {
+            const onDuty = Boolean(attendanceRes.data.isOnDuty);
+            setIsOnline(onDuty);
+            if (onDuty) {
+              startLocationTracking().catch(() => {});
+            }
+          }
+        } catch {
+          // Keep offline by default until toggled
+        }
       } catch (err) {
         console.warn('Error saving login state:', err);
       }
@@ -144,22 +169,33 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 
   /**
-   * Clears cached token and profile from storage and resets context state.
+   * Clears session credentials, stops tracking, and resets context state.
    */
   const logout = useCallback(async (): Promise<void> => {
     try {
+      stopLocationTracking();
+      if (isOnline) {
+        try {
+          await disableAttendance();
+        } catch {}
+      }
+      await logoutApi();
       await logoutService();
       setToken(null);
       setUser(null);
+      setIsOnline(false);
       setIsAuthenticated(false);
     } catch (err) {
       console.warn('Error logging out:', err);
+      stopLocationTracking();
+      await logoutService();
+      setToken(null);
+      setUser(null);
+      setIsOnline(false);
+      setIsAuthenticated(false);
     }
-  }, []);
+  }, [isOnline]);
 
-  /**
-   * Updates partner profile attributes both in state and in local storage.
-   */
   const updateUser = useCallback(
     async (updates: Partial<UserProfile>): Promise<void> => {
       if (!user) return;
@@ -175,16 +211,36 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 
   /**
-   * Switches the partner between online (accepting jobs) and offline modes.
+   * Switches partner between online (with live GPS tracking) and offline modes.
    */
   const toggleOnlineStatus = useCallback(
     async (override?: boolean): Promise<void> => {
       const nextStatus = override !== undefined ? override : !isOnline;
       setIsOnline(nextStatus);
+      await saveOnlineStatus(nextStatus);
+
       try {
-        await saveOnlineStatus(nextStatus);
+        if (nextStatus) {
+          // Fetch current GPS coordinates and start live tracking
+          const coords = await getCurrentPosition();
+          startLocationTracking(undefined, 20000).catch(() => {});
+
+          const res = await enableAttendance({
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+          });
+          if (!res.success) {
+            console.warn('[Attendance] enableAttendance warning:', res.message);
+          }
+        } else {
+          stopLocationTracking();
+          const res = await disableAttendance();
+          if (!res.success) {
+            console.warn('[Attendance] disableAttendance warning:', res.message);
+          }
+        }
       } catch (err) {
-        console.warn('Error persisting online status:', err);
+        console.warn('Error syncing online/attendance status with backend:', err);
       }
     },
     [isOnline],
@@ -210,24 +266,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 };
 
-/**
- * Custom hook to consume the current Authentication state.
- *
- * @throws {Error} If called outside of an `<AuthProvider />`.
- * @returns {AuthContextValue} The auth state and action helpers.
- *
- * @example
- * const { isAuthenticated, user, logout } = useAuth();
- */
 export const useAuth = (): AuthContextValue => {
   const context = useContext(AuthContext);
-
   if (!context) {
     throw new Error('useAuth must be used inside AuthProvider');
   }
-
   return context;
 };
 
 export default AuthContext;
-

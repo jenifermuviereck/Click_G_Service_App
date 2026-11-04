@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
+  Pressable,
   ScrollView,
   ToastAndroid,
   Platform,
   Alert,
   Image,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -22,7 +24,9 @@ const PartnerRegistrationScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const initialMobile = route?.params?.mobile || '+91 98765 43210';
+  const initialMobile = route?.params?.mobile || '';
+  const regToken = route?.params?.registrationToken || '';
+  const scrollViewRef = useRef<any>(null);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -31,22 +35,22 @@ const PartnerRegistrationScreen = () => {
 
   // Form State
   const [formData, setFormData] = useState({
-    fullName: 'Kumar',
-    mobile: initialMobile.startsWith('+91') ? initialMobile : `+91 ${initialMobile}`,
+    fullName: '',
+    mobile: initialMobile ? (initialMobile.startsWith('+91') ? initialMobile : `+91 ${initialMobile}`) : '',
     email: '',
-    address: '18, 6th Cross, BTM Layout',
+    address: '',
     city: 'Bengaluru',
-    pincode: '560076',
-    experienceYears: '5',
+    pincode: '',
+    experienceYears: '1',
     docType1: 'Aadhaar Card',
     docFile1: 'aadhaar-front.pdf • 420 KB',
     docType2: 'Pan Card',
     docFile2: 'aadhaar-back.pdf • 380 KB',
-    accountHolderName: 'Kumar',
-    accountNumber: '123456789012',
-    ifscCode: 'HDFC0001234',
-    gPayUpi: 'kj987654321oabc',
-    phonePeUpi: 'kj987654321oabc',
+    accountHolderName: '',
+    accountNumber: '',
+    ifscCode: '',
+    gPayUpi: '',
+    phonePeUpi: '',
   });
 
   /**
@@ -81,15 +85,28 @@ const PartnerRegistrationScreen = () => {
     }
   };
 
+  const openUploadModal = (target: 'profile' | 'doc1' | 'doc2') => {
+    Keyboard.dismiss();
+    setUploadTarget(target);
+  };
+
   const handleNext = () => {
+    Keyboard.dismiss();
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(prev => prev + 1);
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+      }, 50);
     }
   };
 
   const handleBack = () => {
+    Keyboard.dismiss();
     if (currentStep > 1) {
       setCurrentStep(prev => prev - 1);
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+      }, 50);
     } else {
       navigation.goBack();
     }
@@ -177,7 +194,7 @@ const PartnerRegistrationScreen = () => {
           </View>
           <TouchableOpacity
             className="px-2.5 py-1 bg-white rounded-lg border border-slate-200 mr-1.5"
-            onPress={() => setUploadTarget('profile')}>
+            onPress={() => openUploadModal('profile')}>
             <Text className="text-[11px] font-bold text-brand-green">Change</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -190,7 +207,7 @@ const PartnerRegistrationScreen = () => {
         <TouchableOpacity
           className="flex-row items-center justify-center border border-dashed border-emerald-300 bg-emerald-50/50 rounded-2xl py-3.5 mb-4"
           activeOpacity={0.8}
-          onPress={() => setUploadTarget('profile')}>
+          onPress={() => openUploadModal('profile')}>
           <Icon name="camera-outline" size={20} color="#07522C" style={{ marginRight: 8 }} />
           <Text className="text-xs sm:text-sm font-bold text-brand-green">Add Profile Photo (optional)</Text>
         </TouchableOpacity>
@@ -310,19 +327,23 @@ const PartnerRegistrationScreen = () => {
         />
       </View>
 
-      <TouchableOpacity
+      <Pressable
         className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl p-3.5 mb-4"
-        activeOpacity={0.7}
-        onPress={() => setUploadTarget('doc1')}>
+        style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+        onPress={() => openUploadModal('doc1')}>
         <Icon name="file-document-outline" size={24} color="#07522C" style={{ marginRight: 10 }} />
         <View className="flex-1">
           <Text className="text-xs font-bold text-slate-800">File uploaded • Tap to replace</Text>
           <Text className="text-[11px] text-slate-500">{formData.docFile1}</Text>
         </View>
-        <View className="px-2.5 py-1 bg-white rounded-lg border border-slate-200">
+        <Pressable
+          className="px-2.5 py-1.5 bg-white rounded-lg border border-slate-200"
+          style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+          hitSlop={8}
+          onPress={() => openUploadModal('doc1')}>
           <Text className="text-[11px] font-bold text-brand-green">Replace</Text>
-        </View>
-      </TouchableOpacity>
+        </Pressable>
+      </Pressable>
 
       {/* Doc 2 */}
       <Text className="text-xs font-semibold text-slate-700 mb-1.5">Document Type *</Text>
@@ -334,19 +355,23 @@ const PartnerRegistrationScreen = () => {
         />
       </View>
 
-      <TouchableOpacity
+      <Pressable
         className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl p-3.5 mb-4"
-        activeOpacity={0.7}
-        onPress={() => setUploadTarget('doc2')}>
+        style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+        onPress={() => openUploadModal('doc2')}>
         <Icon name="file-document-outline" size={24} color="#07522C" style={{ marginRight: 10 }} />
         <View className="flex-1">
           <Text className="text-xs font-bold text-slate-800">File uploaded • Tap to replace</Text>
           <Text className="text-[11px] text-slate-500">{formData.docFile2}</Text>
         </View>
-        <View className="px-2.5 py-1 bg-white rounded-lg border border-slate-200">
+        <Pressable
+          className="px-2.5 py-1.5 bg-white rounded-lg border border-slate-200"
+          style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+          hitSlop={8}
+          onPress={() => openUploadModal('doc2')}>
           <Text className="text-[11px] font-bold text-brand-green">Replace</Text>
-        </View>
-      </TouchableOpacity>
+        </Pressable>
+      </Pressable>
 
       {/* Verification Notice */}
       <View className="flex-row items-center bg-emerald-50 border border-emerald-200 rounded-xl p-3">
@@ -433,7 +458,7 @@ const PartnerRegistrationScreen = () => {
   // Render Submitted / Success Screen
   if (isSubmitted) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
+      <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
         {/* Header - Left-aligned Title with Back Button */}
         <View className="flex-row items-center px-4 py-3.5 border-b border-slate-100">
           <TouchableOpacity
@@ -458,23 +483,25 @@ const PartnerRegistrationScreen = () => {
           <View className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4">
             <View className="flex-row justify-between py-2 border-b border-slate-200/60">
               <Text className="text-xs text-slate-500">Partner</Text>
-              <Text className="text-xs sm:text-sm font-bold text-slate-800">{formData.fullName || 'Kumar'}</Text>
+              <Text className="text-xs sm:text-sm font-bold text-slate-800">{formData.fullName || ''}</Text>
             </View>
             <View className="flex-row justify-between py-2 border-b border-slate-200/60">
               <Text className="text-xs text-slate-500">Registration reference</Text>
-              <Text className="text-xs sm:text-sm font-bold text-brand-green">CG-P-2084</Text>
+              <Text className="text-xs sm:text-sm font-bold text-brand-green">
+                {regToken ? `CG-REG-${regToken.slice(0, 6).toUpperCase()}` : 'CG-PENDING'}
+              </Text>
             </View>
             <View className="flex-row justify-between pt-2">
               <Text className="text-xs text-slate-500">Submitted</Text>
-              <Text className="text-xs sm:text-sm font-semibold text-slate-700">08 Oct 2026</Text>
+              <Text className="text-xs sm:text-sm font-semibold text-slate-700">
+                {new Date().toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}
+              </Text>
             </View>
           </View>
         </View>
 
         {/* Back to Login Button */}
-        <View
-          style={{ paddingBottom: Math.max(insets.bottom, 16) }}
-          className="p-4 bg-white border-t border-slate-100">
+        <View className="p-4 bg-white border-t border-slate-100">
           <TouchableOpacity
             className="w-full h-12 bg-brand-green rounded-xl items-center justify-center shadow-md shadow-brand-green/20"
             activeOpacity={0.88}
@@ -487,7 +514,7 @@ const PartnerRegistrationScreen = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
       {/* Top Header - Left-aligned Title with Back Button */}
       <View className="flex-row items-center px-4 py-3.5 border-b border-slate-100">
         <TouchableOpacity
@@ -500,9 +527,11 @@ const PartnerRegistrationScreen = () => {
       </View>
 
       <ScrollView
+        ref={scrollViewRef}
+        className="flex-1"
         contentContainerClassName="p-4 sm:p-5 pb-6"
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled">
+        keyboardShouldPersistTaps="always">
         {renderStepHeader()}
 
         {currentStep === 1 && renderStep1()}
@@ -512,46 +541,53 @@ const PartnerRegistrationScreen = () => {
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <View
-        style={{ paddingBottom: Math.max(insets.bottom, 16) }}
-        className="p-4 bg-white border-t border-slate-100">
+      <View className="p-4 bg-white border-t border-slate-100 z-10">
         {currentStep < 4 ? (
           <View className="flex-row gap-3">
-            <TouchableOpacity
+            <Pressable
               className="flex-1 h-12 rounded-xl border border-slate-300 bg-white items-center justify-center"
-              activeOpacity={0.8}
+              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+              hitSlop={10}
               onPress={handleBack}>
               <Text className="text-slate-700 text-sm font-bold">Back</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               className="flex-1 h-12 rounded-xl bg-brand-green items-center justify-center shadow-sm"
-              activeOpacity={0.85}
+              style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}
+              hitSlop={10}
               onPress={handleNext}>
               <Text className="text-white text-sm font-bold">Continue</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         ) : (
           <View>
-            <TouchableOpacity
+            <Pressable
               className="w-full h-12 bg-brand-green rounded-xl items-center justify-center mb-2 shadow-sm"
-              activeOpacity={0.85}
+              style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}
+              hitSlop={10}
               onPress={handleSubmit}>
               <Text className="text-white text-sm font-bold">Submit for Verification</Text>
-            </TouchableOpacity>
-            <TouchableOpacity className="py-1 items-center" onPress={handleBack}>
+            </Pressable>
+            <Pressable
+              className="py-1 items-center"
+              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+              hitSlop={10}
+              onPress={handleBack}>
               <Text className="text-xs font-semibold text-slate-500">Back</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         )}
       </View>
 
-      <UploadPickerModal
-        visible={uploadTarget !== null}
-        onClose={() => setUploadTarget(null)}
-        onPick={handleFilePicked}
-        title={uploadTarget === 'profile' ? 'Upload Profile Photo' : 'Upload Document'}
-        allowDocs={uploadTarget !== 'profile'}
-      />
+      {uploadTarget !== null && (
+        <UploadPickerModal
+          visible={true}
+          onClose={() => setUploadTarget(null)}
+          onPick={handleFilePicked}
+          title={uploadTarget === 'profile' ? 'Upload Profile Photo' : 'Upload Document'}
+          allowDocs={uploadTarget !== 'profile'}
+        />
+      )}
     </SafeAreaView>
   );
 };

@@ -14,15 +14,16 @@ const CompletionConfirmedScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
 
-  const job = route?.params?.job || {
-    bookingRef: 'CG-1042',
-    category: 'Plumbing Repair',
-    grossAmount: 1500,
-    platformCommission: 300,
-    additionalCharges: 500,
-    gstAmount: 170,
-    netEarnings: 1870,
-    completedAt: 'Today • 11:15 AM',
+  const rawJob = route?.params?.job || {};
+  const job = {
+    bookingRef: rawJob.bookingRef || 'CG-JOB',
+    category: rawJob.category || rawJob.title || 'Service Job',
+    grossAmount: Number(rawJob.grossAmount ?? rawJob.price ?? 0),
+    platformCommission: Number(rawJob.platformCommission ?? 0),
+    additionalCharges: Number(rawJob.additionalCharges ?? 0),
+    gstAmount: Number(rawJob.gstAmount ?? 0),
+    netEarnings: Number(rawJob.netEarnings ?? rawJob.estimatedEarnings ?? rawJob.price ?? 0),
+    completedAt: rawJob.completedAt || 'Recently',
   };
 
   return (

@@ -65,7 +65,7 @@ const SettingsScreen = () => {
         {/* Privacy & Account Section */}
         <Text className="text-xs sm:text-sm font-bold text-slate-900 mb-2.5">Privacy &amp; account</Text>
         <View className="bg-white rounded-2xl border border-slate-200 p-4 mb-5 shadow-sm">
-          <TouchableOpacity className="flex-row justify-between items-center py-1.5 active:opacity-70" activeOpacity={0.7}>
+          <TouchableOpacity className="flex-row justify-between items-center py-1.5" activeOpacity={0.7}>
             <Text className="text-xs sm:text-sm font-medium text-slate-700">Terms of Service</Text>
             <View className="flex-row items-center">
               <Text className="text-xs text-slate-400 mr-1">View</Text>
@@ -75,7 +75,7 @@ const SettingsScreen = () => {
 
           <View className="h-px bg-slate-100 my-2.5" />
 
-          <TouchableOpacity className="flex-row justify-between items-center py-1.5 active:opacity-70" activeOpacity={0.7}>
+          <TouchableOpacity className="flex-row justify-between items-center py-1.5" activeOpacity={0.7}>
             <Text className="text-xs sm:text-sm font-medium text-slate-700">Privacy Policy</Text>
             <View className="flex-row items-center">
               <Text className="text-xs text-slate-400 mr-1">View</Text>

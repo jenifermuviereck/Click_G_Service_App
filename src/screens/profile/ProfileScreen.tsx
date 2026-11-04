@@ -81,13 +81,17 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ hideBottomNav = false, on
         {/* Profile Card Header */}
         <View className="flex-row items-center bg-white rounded-2xl border border-slate-200 p-4 mb-4 shadow-sm">
           <View className="w-14 h-14 rounded-full bg-brand-lightGreen items-center justify-center mr-3.5 border-2 border-brand-green/20">
-            <Text className="text-xl font-extrabold text-brand-green">K</Text>
+            <Text className="text-xl font-extrabold text-brand-green">
+              {(user?.name?.[0] || 'P').toUpperCase()}
+            </Text>
           </View>
           <View className="flex-1">
-            <Text className="text-base sm:text-lg font-bold text-slate-900">{user?.name || 'Kumar'}</Text>
-            <Text className="text-xs sm:text-[13px] text-slate-500 mb-1">{user?.mobile || '+91 98765 43210'}</Text>
+            <Text className="text-base sm:text-lg font-bold text-slate-900">{user?.name || 'Partner'}</Text>
+            <Text className="text-xs sm:text-[13px] text-slate-500 mb-1">{user?.mobile || 'No phone set'}</Text>
             <View className="self-start bg-emerald-100 px-2 py-0.5 rounded-full">
-              <Text className="text-[10px] sm:text-xs font-bold text-emerald-800">Verified partner</Text>
+              <Text className="text-[10px] sm:text-xs font-bold text-emerald-800">
+                {user?.verified ? 'Verified partner' : 'Partner'}
+              </Text>
             </View>
           </View>
         </View>
@@ -99,7 +103,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ hideBottomNav = false, on
               key={index}
               className={`flex-row items-center px-4 py-3.5 ${
                 index !== menuItems.length - 1 ? 'border-b border-slate-100' : ''
-              } active:bg-slate-50`}
+              }`}
               activeOpacity={0.7}
               onPress={item.onPress}>
               <View className="w-8 h-8 rounded-lg bg-emerald-50 items-center justify-center mr-3">
@@ -114,7 +118,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ hideBottomNav = false, on
         {/* Logout Row Card */}
         <View className="bg-white rounded-2xl border border-slate-200 overflow-hidden mb-6 shadow-sm">
           <TouchableOpacity
-            className="flex-row items-center px-4 py-3.5 active:bg-red-50"
+            className="flex-row items-center px-4 py-3.5"
             activeOpacity={0.7}
             onPress={() => setLogoutModalVisible(true)}>
             <View className="w-8 h-8 rounded-lg bg-red-50 items-center justify-center mr-3">

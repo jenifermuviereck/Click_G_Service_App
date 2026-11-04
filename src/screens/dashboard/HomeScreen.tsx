@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 import BottomNavBar from '../../components/BottomNavBar';
+import NotificationHistoryModal from '../../components/NotificationHistoryModal';
+import notificationHistoryService from '../../services/notifications/notificationHistoryService';
 import { useAuth } from '../../context/AuthContext';
 import { useJobs } from '../../context/JobContext';
 
@@ -24,11 +26,23 @@ interface HomeScreenProps {
 const HomeScreen: React.FC<HomeScreenProps> = ({ hideBottomNav = false, onSwitchTab }) => {
   const navigation = useNavigation<any>();
   const { user, isOnline, toggleOnlineStatus } = useAuth();
-  const { dashboardCounts } = useJobs();
+  const { dashboardCounts, refreshJobs } = useJobs();
   const [selectedPeriod, setSelectedPeriod] = useState('Today');
   const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false);
+  const [notificationModalVisible, setNotificationModalVisible] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
 
   const periodOptions = ['Today', 'Yesterday', 'Weekly', 'Custom'];
+
+  const updateUnreadCount = async () => {
+    const count = await notificationHistoryService.getUnreadCount();
+    setUnreadNotifCount(count);
+  };
+
+  useEffect(() => {
+    updateUnreadCount();
+    refreshJobs();
+  }, [refreshJobs]);
 
   const metrics = [
     { label: 'Assigned Job', count: dashboardCounts.assigned, route: 'AcceptRequest' },
@@ -53,9 +67,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ hideBottomNav = false, onSwitch
 
         {/* Right Actions: Notification Bell + User Profile */}
         <View className="flex-row items-center">
-          <TouchableOpacity className="relative p-1.5 mr-2.5" activeOpacity={0.7}>
+          <TouchableOpacity
+            className="relative p-1.5 mr-2.5"
+            activeOpacity={0.7}
+            onPress={() => setNotificationModalVisible(true)}>
             <Icon name="bell-outline" size={22} color="#344054" />
-            <View className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
+            {unreadNotifCount > 0 && (
+              <View className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-red-500 border border-white" />
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -65,7 +84,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ hideBottomNav = false, onSwitch
             <View className="w-6 h-6 rounded-full bg-brand-lightGreen items-center justify-center mr-1.5">
               <Icon name="account" size={16} color="#07522C" />
             </View>
-            <Text className="text-xs font-semibold text-slate-800 mr-1">Hi, {user?.name || 'Kumar'}</Text>
+            <Text className="text-xs font-semibold text-slate-800 mr-1">Hi, {user?.name || 'Partner'}</Text>
             <Icon name="chevron-down" size={16} color="#667085" />
           </TouchableOpacity>
         </View>
@@ -130,7 +149,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ hideBottomNav = false, onSwitch
           <View className="flex-row items-center justify-between">
             <Text className="text-xs sm:text-[13px] text-slate-600 flex-1 pr-2.5">
               {isOnline
-                ? "You're online now and ready for jobs."
+                ? "You're online now, GPS active, ready for jobs."
                 : "You're offline now"}
             </Text>
 
@@ -148,37 +167,37 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ hideBottomNav = false, onSwitch
           <View className="relative w-28 sm:w-32 z-50">
             <TouchableOpacity
               className={`flex-row items-center justify-between bg-white border border-slate-300 px-3 py-1.5 shadow-sm ${
-                periodDropdownOpen ? 'rounded-t-lg border-b-slate-100' : 'rounded-lg'
+                periodDropdownOpen ? 'rounded-t-xl border-b-0' : 'rounded-xl'
               }`}
-              activeOpacity={0.8}
-              onPress={() => setPeriodDropdownOpen(prev => !prev)}>
-              <Text className="text-xs sm:text-[13px] font-semibold text-slate-700">{selectedPeriod}</Text>
+              onPress={() => setPeriodDropdownOpen(!periodDropdownOpen)}
+              activeOpacity={0.8}>
+              <Text className="text-xs font-semibold text-slate-700">{selectedPeriod}</Text>
               <Icon
                 name={periodDropdownOpen ? 'chevron-up' : 'chevron-down'}
                 size={16}
-                color="#344054"
+                color="#475467"
               />
             </TouchableOpacity>
 
             {periodDropdownOpen && (
-              <View className="absolute top-9 left-0 right-0 bg-white border border-slate-300 border-t-0 rounded-b-lg shadow-lg z-50">
-                {periodOptions.map((option, idx) => (
+              <View className="absolute top-[34px] left-0 right-0 bg-white border border-slate-300 border-t-0 rounded-b-xl shadow-md z-50">
+                {periodOptions.map((opt, i) => (
                   <TouchableOpacity
-                    key={option}
+                    key={opt}
                     className={`px-3 py-2 ${
-                      idx !== periodOptions.length - 1 ? 'border-b border-slate-100' : ''
-                    } ${selectedPeriod === option ? 'bg-slate-50' : ''}`}
+                      i !== periodOptions.length - 1 ? 'border-b border-slate-100' : ''
+                    }`}
                     onPress={() => {
-                      setSelectedPeriod(option);
+                      setSelectedPeriod(opt);
                       setPeriodDropdownOpen(false);
                     }}>
                     <Text
                       className={`text-xs ${
-                        selectedPeriod === option
-                          ? 'text-brand-green font-bold'
-                          : 'text-slate-700 font-medium'
+                        selectedPeriod === opt
+                          ? 'font-bold text-brand-green'
+                          : 'font-medium text-slate-600'
                       }`}>
-                      {option}
+                      {opt}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -187,13 +206,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ hideBottomNav = false, onSwitch
           </View>
         </View>
 
-        {/* 2x3 Metric Cards Grid (Responsive 2-column) */}
+        {/* 6 Grid Metrics */}
         <View className="flex-row flex-wrap justify-between gap-y-3">
-          {metrics.map((item, index) => (
+          {metrics.map(item => (
             <TouchableOpacity
-              key={index}
-              className="w-[48%] bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 shadow-sm justify-between min-h-[92px] active:scale-[0.98]"
-              activeOpacity={0.85}
+              key={item.label}
+              className="w-[48%] bg-white rounded-2xl border border-slate-200 p-3.5 shadow-sm"
+              activeOpacity={0.7}
               onPress={() => {
                 if (item.tab && onSwitchTab) {
                   onSwitchTab(item.tab as any);
@@ -209,6 +228,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ hideBottomNav = false, onSwitch
           ))}
         </View>
       </ScrollView>
+
+      {/* Notification Center Modal */}
+      <NotificationHistoryModal
+        visible={notificationModalVisible}
+        onClose={() => {
+          setNotificationModalVisible(false);
+          updateUnreadCount();
+        }}
+        onNavigateToJob={() => navigation.navigate('AcceptRequest')}
+      />
 
       {/* Bottom Navigation Bar */}
       {!hideBottomNav && <BottomNavBar currentTab="Home" />}

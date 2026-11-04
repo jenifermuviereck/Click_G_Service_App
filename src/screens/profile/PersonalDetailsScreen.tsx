@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,26 +9,52 @@ import {
   Platform,
   Alert,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 import UploadPickerModal from '../../components/UploadPickerModal';
 import { useAuth } from '../../context/AuthContext';
+import profileApi from '../../common/api/profileApi';
 
 const PersonalDetailsScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { user, updateUser } = useAuth();
 
-  const [fullName, setFullName] = useState(user?.name || 'Kumar');
-  const [mobile] = useState(user?.mobile || '+91 98765 43210');
-  const [email, setEmail] = useState(user?.email || 'kumar@gmail.com');
-  const [address, setAddress] = useState('18, 6th Cross, BTM Layout');
-  const [city, setCity] = useState(user?.city || 'Bengaluru');
-  const [pincode, setPincode] = useState('560076');
+  const [fullName, setFullName] = useState(user?.name || '');
+  const [mobile] = useState(user?.mobile || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState(user?.city || '');
+  const [pincode, setPincode] = useState('');
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [isPickerVisible, setIsPickerVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Load real profile data from backend on mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const res = await profileApi.getProfile();
+        if (res.success && res.data) {
+          const p = res.data;
+          setFullName(p.fullName || user?.name || '');
+          setEmail(p.email || user?.email || '');
+          setCity(p.address?.city || user?.city || '');
+          setAddress(p.address?.addressLine1 || '');
+          setPincode(p.address?.pincode || '');
+        }
+      } catch (err) {
+        console.warn('[PersonalDetailsScreen] loadProfile error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadProfile();
+  }, []);
 
   const showNotification = (msg: string) => {
     if (Platform.OS === 'android') {
@@ -39,13 +65,51 @@ const PersonalDetailsScreen = () => {
   };
 
   const handleSave = async () => {
-    await updateUser({
-      name: fullName,
-      email,
-      city,
-    });
-    showNotification('Personal details updated successfully');
-    navigation.goBack();
+    if (!fullName.trim()) {
+      showNotification('Full name is required');
+      return;
+    }
+    try {
+      setIsSaving(true);
+
+      // 1. Update profile avatar if a photo was picked
+      if (profilePhoto) {
+        const formData = new FormData();
+        formData.append('avatar', {
+          uri: profilePhoto,
+          name: 'avatar.jpg',
+          type: 'image/jpeg',
+        } as any);
+        await profileApi.uploadAvatar(formData);
+      }
+
+      // 2. Update profile name & email
+      await profileApi.updateProfile({
+        fullName: fullName.trim(),
+        email: email.trim() || undefined,
+      });
+
+      // 3. Update residential address
+      if (address.trim() || city.trim() || pincode.trim()) {
+        await profileApi.updateAddress({
+          addressLine1: address.trim(),
+          city: city.trim(),
+          state: '',
+          pincode: pincode.trim(),
+        });
+      }
+
+      // 4. Sync local auth context
+      await updateUser({ name: fullName.trim(), email: email.trim(), city: city.trim() });
+
+      showNotification('Personal details updated successfully');
+      navigation.goBack();
+    } catch (err) {
+      console.warn('[PersonalDetailsScreen] save error:', err);
+      showNotification('Failed to save. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -61,6 +125,12 @@ const PersonalDetailsScreen = () => {
         <Text className="text-lg sm:text-xl font-bold text-slate-900">Personal Details</Text>
       </View>
 
+      {isLoading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#07522C" />
+          <Text className="text-xs text-slate-500 mt-3">Loading profile...</Text>
+        </View>
+      ) : (
       <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
         {/* Profile Photo Upload */}
         {profilePhoto ? (
@@ -179,18 +249,26 @@ const PersonalDetailsScreen = () => {
           </View>
         </View>
       </ScrollView>
+      )}
 
       {/* Bottom Save Button */}
+      {!isLoading && (
       <View
         style={{ paddingBottom: Math.max(insets.bottom, 16) }}
         className="p-4 bg-white border-t border-slate-100">
         <TouchableOpacity
           className="bg-brand-green w-full h-12 rounded-xl items-center justify-center shadow-md shadow-brand-green/20"
           activeOpacity={0.88}
+          disabled={isSaving}
           onPress={handleSave}>
-          <Text className="text-white text-[15px] font-bold">Save Changes</Text>
+          {isSaving ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text className="text-white text-[15px] font-bold">Save Changes</Text>
+          )}
         </TouchableOpacity>
       </View>
+      )}
 
       <UploadPickerModal
         visible={isPickerVisible}

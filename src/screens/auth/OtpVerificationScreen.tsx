@@ -18,7 +18,8 @@ import authService from '../../services/authService';
 import { useAuth } from '../../context/AuthContext';
 
 const OtpVerificationScreen = () => {
-  const [otp, setOtp] = useState(['5', '9', '7', '5']);
+  // Swagger Person-App-Auth specifies exactly 5-digit numeric OTP
+  const [otp, setOtp] = useState(['', '', '', '', '']);
   const [secondsLeft, setSecondsLeft] = useState(35);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation<any>();
@@ -33,6 +34,7 @@ const OtpVerificationScreen = () => {
     : '98765 43210';
 
   const inputRefs = [
+    useRef<any>(null),
     useRef<any>(null),
     useRef<any>(null),
     useRef<any>(null),
@@ -60,26 +62,26 @@ const OtpVerificationScreen = () => {
    * Auto-advances focus to the next box upon typing a digit.
    *
    * @param {string} value - The character typed.
-   * @param {number} index - Index of the OTP input cell (0 to 3).
+   * @param {number} index - Index of the OTP input cell (0 to 4).
    */
   const handleOtpChange = (value: string, index: number) => {
     const cleanVal = value.replace(/[^0-9]/g, '');
     const newOtp = [...otp];
 
     if (cleanVal.length > 1) {
-      const digits = cleanVal.slice(0, 4).split('');
+      const digits = cleanVal.slice(0, 5).split('');
       digits.forEach((d, i) => {
         newOtp[i] = d;
       });
       setOtp(newOtp);
-      inputRefs[Math.min(digits.length - 1, 3)].current?.focus();
+      inputRefs[Math.min(digits.length - 1, 4)].current?.focus();
       return;
     }
 
     newOtp[index] = cleanVal;
     setOtp(newOtp);
 
-    if (cleanVal !== '' && index < 3) {
+    if (cleanVal !== '' && index < 4) {
       inputRefs[index + 1].current?.focus();
     }
   };
@@ -97,13 +99,13 @@ const OtpVerificationScreen = () => {
   };
 
   /**
-   * Submits the 4-digit code to authService.verifyOtp.
+   * Submits the 5-digit code to authService.verifyOtp.
    * On success, persists session token, updates AuthContext, and navigates to the Home dashboard.
    */
   const handleVerify = async () => {
     const fullOtp = otp.join('');
-    if (fullOtp.length !== 4) {
-      showNotification('Please enter 4-digit verification code');
+    if (fullOtp.length !== 5) {
+      showNotification('Please enter 5-digit verification code');
       return;
     }
 
@@ -134,8 +136,8 @@ const OtpVerificationScreen = () => {
     if (secondsLeft > 0) return;
     setSecondsLeft(35);
     try {
-      await authService.sendOtp(mobile || '9876543210');
-      showNotification('New OTP sent');
+      const res = await authService.sendOtp(mobile || '9876543210');
+      showNotification(res.message || 'New OTP sent');
     } catch {
       showNotification('Failed to resend OTP');
     }
@@ -174,12 +176,12 @@ const OtpVerificationScreen = () => {
               <Text className="text-[15px] text-slate-800 tracking-wider font-medium">{displayMobile}</Text>
             </View>
 
-            {/* 4 Digit OTP Boxes */}
-            <View className="flex-row justify-center mb-6 gap-3 sm:gap-4">
+            {/* 5 Digit OTP Boxes (aligned with Swagger specification) */}
+            <View className="flex-row justify-center mb-4 gap-2 sm:gap-3">
               {otp.map((digit, idx) => (
                 <View
                   key={idx}
-                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl border border-slate-200 bg-white items-center justify-center shadow-sm">
+                  className="w-11 h-12 sm:w-13 sm:h-14 rounded-xl border border-slate-200 bg-white items-center justify-center shadow-sm">
                   <TextInput
                     ref={inputRefs[idx]}
                     className="text-xl sm:text-2xl font-bold text-slate-900 text-center w-full h-full p-0"
@@ -194,6 +196,14 @@ const OtpVerificationScreen = () => {
                 </View>
               ))}
             </View>
+
+            {/* Fixed OTP Testing Helper */}
+            <TouchableOpacity
+              onPress={() => setOtp(['1', '2', '3', '4', '5'])}
+              className="self-center bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full mb-5 flex-row items-center active:opacity-75">
+              <Icon name="key-outline" size={14} color="#07522C" style={{ marginRight: 5 }} />
+              <Text className="text-xs font-bold text-brand-green">Fixed OTP: 12345 (Tap to fill)</Text>
+            </TouchableOpacity>
 
             {/* Resend Code Pill Badge */}
             <View className="items-center mb-6">

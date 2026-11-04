@@ -16,6 +16,7 @@ import {
 } from '../storage/authStorage';
 import {
   sendOtp as sendOtpApi,
+  resendOtp as resendOtpApi,
   verifyOtp as verifyOtpApi,
   registerPartnerApi,
   AuthApiResponse,
@@ -80,10 +81,20 @@ export const sendOtp = async (mobile: string): Promise<AuthApiResponse> => {
 };
 
 /**
+ * Resends the 5-digit verification OTP.
+ *
+ * @param {string} mobile - 10-digit mobile number.
+ * @returns {Promise<AuthApiResponse>} Result of OTP resend.
+ */
+export const resendOtp = async (mobile: string): Promise<AuthApiResponse> => {
+  return resendOtpApi(mobile);
+};
+
+/**
  * Submits an entered OTP code for verification and retrieves session credentials.
  *
  * @param {string} mobile - 10-digit mobile number.
- * @param {string} otp - 4-digit numeric OTP code.
+ * @param {string} otp - 5-digit numeric OTP code.
  * @returns {Promise<AuthApiResponse<UserProfile>>} Session token & user profile if valid.
  */
 export const verifyOtp = async (
@@ -112,9 +123,9 @@ export const authService = {
   getUser,
   logout,
   sendOtp,
+  resendOtp,
   verifyOtp,
   registerPartner,
 };
 
 export default authService;
-
