@@ -25,6 +25,8 @@ const OtpVerificationScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const mobile = route?.params?.mobile || '';
+  const initialMockOtp = route?.params?.mockOtp || '';
+  const [mockOtp, setMockOtp] = useState<string>(initialMockOtp);
   const { login } = useAuth();
 
   const displayMobile = mobile
@@ -137,6 +139,9 @@ const OtpVerificationScreen = () => {
     setSecondsLeft(35);
     try {
       const res = await authService.sendOtp(mobile || '9876543210');
+      if (res.testOtp) {
+        setMockOtp(res.testOtp);
+      }
       showNotification(res.message || 'New OTP sent');
     } catch {
       showNotification('Failed to resend OTP');
@@ -197,13 +202,17 @@ const OtpVerificationScreen = () => {
               ))}
             </View>
 
-            {/* Fixed OTP Testing Helper */}
-            <TouchableOpacity
-              onPress={() => setOtp(['1', '2', '3', '4', '5'])}
-              className="self-center bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full mb-5 flex-row items-center active:opacity-75">
-              <Icon name="key-outline" size={14} color="#07522C" style={{ marginRight: 5 }} />
-              <Text className="text-xs font-bold text-brand-green">Fixed OTP: 12345 (Tap to fill)</Text>
-            </TouchableOpacity>
+            {/* Server Mock OTP / Testing Helper */}
+            {mockOtp ? (
+              <TouchableOpacity
+                onPress={() => setOtp(mockOtp.slice(0, 5).split(''))}
+                className="self-center bg-emerald-50 border border-emerald-300 px-3.5 py-1.5 rounded-full mb-5 flex-row items-center active:opacity-75 shadow-sm">
+                <Icon name="key-variant" size={14} color="#07522C" style={{ marginRight: 6 }} />
+                <Text className="text-xs font-bold text-brand-green">
+                  Verification OTP: <Text className="tracking-widest font-black">{mockOtp}</Text> (Tap to fill)
+                </Text>
+              </TouchableOpacity>
+            ) : null}
 
             {/* Resend Code Pill Badge */}
             <View className="items-center mb-6">

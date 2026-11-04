@@ -8,10 +8,13 @@
  */
 
 import './global.css';
-import { AppRegistry } from 'react-native';
+import { AppRegistry, LogBox } from 'react-native';
 import { getMessaging } from '@react-native-firebase/messaging';
 import App from './App';
 import { name as appName } from './app.json';
+
+// Ignore all LogBox notifications/warnings to prevent UI overlays from blocking touches
+LogBox.ignoreAllLogs(true);
 
 // ─── Background FCM Handler ───────────────────────────────────────────────────
 // Called when a data-only push arrives while the app is background/killed.

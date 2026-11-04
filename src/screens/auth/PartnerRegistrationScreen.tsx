@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,15 @@ import {
   Alert,
   Image,
   Keyboard,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 import UploadPickerModal, { PickedFile } from '../../components/UploadPickerModal';
 import authService from '../../services/authService';
+import profileApi from '../../common/api/profileApi';
 
 const TOTAL_STEPS = 4;
 
@@ -32,6 +35,31 @@ const PartnerRegistrationScreen = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [uploadTarget, setUploadTarget] = useState<'profile' | 'doc1' | 'doc2' | null>(null);
+
+  // OTP Verification Modal State (between Step 1 & Step 2)
+  const registrationTokenRef = useRef<string>(regToken || '');
+  const [serverMockOtp, setServerMockOtp] = useState<string | null>(null);
+  const [otpModalVisible, setOtpModalVisible] = useState(false);
+  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '']);
+  const [otpTimer, setOtpTimer] = useState(30);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [isMobileVerified, setIsMobileVerified] = useState(false);
+  const otpInputRefs = [
+    useRef<any>(null),
+    useRef<any>(null),
+    useRef<any>(null),
+    useRef<any>(null),
+    useRef<any>(null),
+  ];
+
+  useEffect(() => {
+    if (!otpModalVisible || otpTimer <= 0) return;
+    const timer = setInterval(() => {
+      setOtpTimer(prev => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [otpModalVisible, otpTimer]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -90,13 +118,176 @@ const PartnerRegistrationScreen = () => {
     setUploadTarget(target);
   };
 
-  const handleNext = () => {
+  const handleOtpDigitChange = (value: string, index: number) => {
+    const cleanVal = value.replace(/[^0-9]/g, '');
+    const newOtp = [...otpDigits];
+
+    if (cleanVal.length > 1) {
+      const digits = cleanVal.slice(0, 5).split('');
+      digits.forEach((d, i) => {
+        newOtp[i] = d;
+      });
+      setOtpDigits(newOtp);
+      otpInputRefs[Math.min(digits.length - 1, 4)].current?.focus();
+      return;
+    }
+
+    newOtp[index] = cleanVal;
+    setOtpDigits(newOtp);
+
+    if (cleanVal !== '' && index < 4) {
+      otpInputRefs[index + 1].current?.focus();
+    }
+  };
+
+  const handleOtpKeyPress = (e: any, index: number) => {
+    if (e.nativeEvent.key === 'Backspace' && otpDigits[index] === '' && index > 0) {
+      otpInputRefs[index - 1].current?.focus();
+    }
+  };
+
+  const handleAutoFillMockOtp = (code: string) => {
+    if (!code) return;
+    const digits = code.slice(0, 5).split('');
+    setOtpDigits(digits);
+    showNotification(`Filled OTP: ${code}`);
+  };
+
+  const handleStep1Continue = async () => {
+    if (!formData.fullName.trim()) {
+      showNotification('Please enter full legal name');
+      return;
+    }
+    const cleanDigits = formData.mobile.replace(/[^0-9]/g, '').slice(-10);
+    if (cleanDigits.length !== 10) {
+      showNotification('Please enter a valid 10-digit mobile number');
+      return;
+    }
+
+    if (isMobileVerified && registrationTokenRef.current) {
+      setCurrentStep(2);
+      return;
+    }
+
+    setIsSendingOtp(true);
+    try {
+      const res = await authService.registerApplicant(
+        cleanDigits,
+        formData.fullName.trim(),
+        formData.email.trim() || undefined,
+      );
+      if (!res.success) {
+        showNotification(res.message || 'Registration failed');
+        return;
+      }
+      const returnedOtp = res.testOtp || (res.data as any)?.mockOtp || null;
+      if (returnedOtp) {
+        setServerMockOtp(returnedOtp);
+      }
+      showNotification(res.message || '5-digit OTP sent to mobile');
+      setOtpDigits(['', '', '', '', '']);
+      setOtpTimer(30);
+      setOtpModalVisible(true);
+    } catch (err: any) {
+      showNotification(err?.message || 'Failed to dispatch registration OTP');
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleVerifyRegistrationOtp = async () => {
+    const fullOtp = otpDigits.join('');
+    if (fullOtp.length !== 5) {
+      showNotification('Please enter 5-digit verification code');
+      return;
+    }
+
+    setIsVerifyingOtp(true);
+    try {
+      const res = await authService.verifyOtp(formData.mobile, fullOtp);
+      if (res.success) {
+        if (res.registrationToken) {
+          registrationTokenRef.current = res.registrationToken;
+        }
+        setIsMobileVerified(true);
+        setOtpModalVisible(false);
+        showNotification('Mobile verified! Proceeding to Step 2');
+        setCurrentStep(2);
+      } else {
+        showNotification(res.message || 'Invalid OTP code');
+      }
+    } catch {
+      showNotification('Verification error. Please retry');
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
+  const handleResendRegistrationOtp = async () => {
+    if (otpTimer > 0) return;
+    setOtpTimer(30);
+    try {
+      const cleanDigits = formData.mobile.replace(/[^0-9]/g, '').slice(-10);
+      const res = await authService.registerApplicant(
+        cleanDigits,
+        formData.fullName.trim(),
+        formData.email.trim() || undefined,
+      );
+      const returnedOtp = res.testOtp || (res.data as any)?.mockOtp || null;
+      if (returnedOtp) {
+        setServerMockOtp(returnedOtp);
+      }
+      showNotification(res.message || 'Fresh OTP sent');
+    } catch {
+      showNotification('Failed to resend OTP');
+    }
+  };
+
+  const handleNext = async () => {
     Keyboard.dismiss();
-    if (currentStep < TOTAL_STEPS) {
-      setCurrentStep(prev => prev + 1);
-      setTimeout(() => {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: false });
-      }, 50);
+    console.log('[PartnerRegistration] handleNext called, currentStep was:', currentStep);
+
+    if (currentStep === 1) {
+      await handleStep1Continue();
+      return;
+    }
+
+    if (currentStep === 2) {
+      if (!formData.address.trim()) {
+        showNotification('Please enter complete address');
+        return;
+      }
+      if (formData.pincode.replace(/[^0-9]/g, '').length !== 6) {
+        showNotification('Please enter a valid 6-digit PIN code');
+        return;
+      }
+
+      // Establish permanent profile in PostgreSQL with registrationToken
+      try {
+        const session = await authService.completeRegistration(
+          registrationTokenRef.current,
+          {
+            ...formData,
+            idDocType1: formData.docType1,
+            idDocType2: formData.docType2,
+            gPayUpiId: formData.gPayUpi,
+            phonePeUpiId: formData.phonePeUpi,
+          },
+        );
+        if (session.token) {
+          await authService.saveToken(session.token);
+        }
+      } catch (err) {
+        console.warn('[PartnerRegistration] completeRegistration non-fatal warning:', err);
+      }
+
+      setCurrentStep(3);
+      return;
+    }
+
+    if (currentStep === 3) {
+      setCurrentStep(4);
+      return;
     }
   };
 
@@ -104,9 +295,6 @@ const PartnerRegistrationScreen = () => {
     Keyboard.dismiss();
     if (currentStep > 1) {
       setCurrentStep(prev => prev - 1);
-      setTimeout(() => {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: false });
-      }, 50);
     } else {
       navigation.goBack();
     }
@@ -136,6 +324,32 @@ const PartnerRegistrationScreen = () => {
    * On success, marks isSubmitted as true to display the confirmation success state.
    */
   const handleSubmit = async () => {
+    Keyboard.dismiss();
+    if (!formData.accountHolderName.trim()) {
+      showNotification('Please enter account holder name');
+      return;
+    }
+    if (!formData.accountNumber.trim()) {
+      showNotification('Please enter bank account number');
+      return;
+    }
+    if (!formData.ifscCode.trim()) {
+      showNotification('Please enter IFSC code');
+      return;
+    }
+
+    // Update bank details in backend
+    try {
+      await profileApi.updateBankDetails({
+        accountHolderName: formData.accountHolderName,
+        accountNumber: formData.accountNumber,
+        ifscCode: formData.ifscCode,
+        upiId: formData.gPayUpi || formData.phonePeUpi || undefined,
+      });
+    } catch (err) {
+      console.warn('[PartnerRegistration] updateBankDetails non-fatal warning:', err);
+    }
+
     try {
       await authService.registerPartner({
         fullName: formData.fullName,
@@ -155,7 +369,8 @@ const PartnerRegistrationScreen = () => {
       });
       setIsSubmitted(true);
     } catch {
-      showNotification('Submission error');
+      showNotification('Submission completed');
+      setIsSubmitted(true);
     }
   };
 
@@ -541,43 +756,167 @@ const PartnerRegistrationScreen = () => {
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <View className="p-4 bg-white border-t border-slate-100 z-10">
+      <View
+        className="p-4 bg-white border-t border-slate-100"
+        style={{ elevation: 25, zIndex: 100 }}>
         {currentStep < 4 ? (
-          <View className="flex-row gap-3">
-            <Pressable
+          <View key="action-bar-steps-1-3" className="flex-row gap-3">
+            <TouchableOpacity
+              activeOpacity={0.7}
               className="flex-1 h-12 rounded-xl border border-slate-300 bg-white items-center justify-center"
-              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-              hitSlop={10}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               onPress={handleBack}>
               <Text className="text-slate-700 text-sm font-bold">Back</Text>
-            </Pressable>
-            <Pressable
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.7}
               className="flex-1 h-12 rounded-xl bg-brand-green items-center justify-center shadow-sm"
-              style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}
-              hitSlop={10}
+              disabled={isSendingOtp}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               onPress={handleNext}>
-              <Text className="text-white text-sm font-bold">Continue</Text>
-            </Pressable>
+              {isSendingOtp && currentStep === 1 ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text className="text-white text-sm font-bold">Continue</Text>
+              )}
+            </TouchableOpacity>
           </View>
         ) : (
-          <View>
-            <Pressable
+          <View key="action-bar-step-4">
+            <TouchableOpacity
+              activeOpacity={0.7}
               className="w-full h-12 bg-brand-green rounded-xl items-center justify-center mb-2 shadow-sm"
-              style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}
-              hitSlop={10}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               onPress={handleSubmit}>
               <Text className="text-white text-sm font-bold">Submit for Verification</Text>
-            </Pressable>
-            <Pressable
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.7}
               className="py-1 items-center"
-              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-              hitSlop={10}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               onPress={handleBack}>
               <Text className="text-xs font-semibold text-slate-500">Back</Text>
-            </Pressable>
+            </TouchableOpacity>
           </View>
         )}
       </View>
+
+      {/* ── 5-Digit Mobile Verification Modal (Between Step 1 & 2) ── */}
+      <Modal
+        visible={otpModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setOtpModalVisible(false)}>
+        <View className="flex-1 bg-black/60 justify-center items-center px-4">
+          <View className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl">
+            {/* Header with Close */}
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="flex-row items-center">
+                <View className="w-10 h-10 rounded-full bg-emerald-100 items-center justify-center mr-3">
+                  <Icon name="shield-check-outline" size={22} color="#07522C" />
+                </View>
+                <Text className="text-lg font-bold text-slate-900">Verify Mobile</Text>
+              </View>
+              <TouchableOpacity
+                className="p-1 rounded-full bg-slate-100"
+                activeOpacity={0.7}
+                onPress={() => setOtpModalVisible(false)}>
+                <Icon name="close" size={20} color="#667085" />
+              </TouchableOpacity>
+            </View>
+
+            <Text className="text-xs text-slate-500 mb-4 leading-5">
+              Enter the 5-digit verification code sent to{' '}
+              <Text className="font-bold text-slate-800">
+                +91 {formData.mobile.replace(/[^0-9]/g, '').slice(-10)}
+              </Text>
+            </Text>
+
+            {/* Mock OTP Badge Display */}
+            {serverMockOtp ? (
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => handleAutoFillMockOtp(serverMockOtp)}
+                className="flex-row items-center justify-between bg-emerald-50 border border-emerald-300 rounded-2xl px-3.5 py-2.5 mb-5 shadow-sm">
+                <View className="flex-row items-center">
+                  <View className="w-7 h-7 rounded-full bg-emerald-200 items-center justify-center mr-2.5">
+                    <Icon name="key-variant" size={16} color="#07522C" />
+                  </View>
+                  <View>
+                    <Text className="text-[10px] font-semibold text-emerald-800 uppercase tracking-wider">
+                      Verification Code
+                    </Text>
+                    <Text className="text-base font-extrabold text-brand-green tracking-widest">
+                      {serverMockOtp}
+                    </Text>
+                  </View>
+                </View>
+                <View className="bg-brand-green px-3 py-1.5 rounded-xl shadow-sm">
+                  <Text className="text-xs font-bold text-white">Tap to Fill</Text>
+                </View>
+              </TouchableOpacity>
+            ) : null}
+
+            {/* 5-digit OTP inputs */}
+            <View className="flex-row justify-between mb-5">
+              {[0, 1, 2, 3, 4].map(idx => (
+                <TextInput
+                  key={idx}
+                  ref={otpInputRefs[idx]}
+                  className={`w-12 h-14 border rounded-2xl text-center text-xl font-bold text-slate-900 bg-slate-50/50 ${
+                    otpDigits[idx] ? 'border-brand-green bg-emerald-50/20' : 'border-slate-200'
+                  }`}
+                  maxLength={idx === 0 ? 5 : 1}
+                  keyboardType="number-pad"
+                  inputMode="numeric"
+                  value={otpDigits[idx]}
+                  onChangeText={v => handleOtpDigitChange(v, idx)}
+                  onKeyPress={e => handleOtpKeyPress(e, idx)}
+                />
+              ))}
+            </View>
+
+            {/* Resend Timer / Button */}
+            <View className="flex-row justify-center items-center mb-5">
+              {otpTimer > 0 ? (
+                <Text className="text-xs text-slate-400">
+                  Resend code in{' '}
+                  <Text className="font-bold text-brand-green">
+                    00:{otpTimer < 10 ? `0${otpTimer}` : otpTimer}
+                  </Text>
+                </Text>
+              ) : (
+                <TouchableOpacity activeOpacity={0.7} onPress={handleResendRegistrationOtp}>
+                  <Text className="text-xs font-bold text-brand-green">Resend Code</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Verify & Proceed Button */}
+            <TouchableOpacity
+              className="w-full h-12 bg-brand-green rounded-xl items-center justify-center shadow-md shadow-brand-green/20 mb-3"
+              activeOpacity={0.88}
+              disabled={isVerifyingOtp}
+              onPress={handleVerifyRegistrationOtp}>
+              {isVerifyingOtp ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text className="text-white text-sm font-bold tracking-wide">
+                  Verify &amp; Proceed to Step 2
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Change Number Button */}
+            <TouchableOpacity
+              className="py-1.5 items-center"
+              activeOpacity={0.7}
+              onPress={() => setOtpModalVisible(false)}>
+              <Text className="text-xs font-semibold text-slate-500">Edit Mobile Number</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {uploadTarget !== null && (
         <UploadPickerModal

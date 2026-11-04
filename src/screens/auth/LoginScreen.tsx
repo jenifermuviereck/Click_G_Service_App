@@ -54,9 +54,12 @@ const LoginScreen = () => {
       const response = await authService.sendOtp(mobile.trim());
       if (response.success) {
         showNotification(response.message || 'OTP sent successfully');
-        navigation.navigate('OtpVerification', { mobile: mobile.trim() });
+        navigation.navigate('OtpVerification', {
+          mobile: mobile.trim(),
+          mockOtp: response.testOtp,
+        });
       } else {
-        showNotification('Failed to send OTP');
+        showNotification(response.message || 'Failed to send OTP');
       }
     } catch {
       showNotification('Network error while requesting OTP');

@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Modal,
   View,
   Text,
   Pressable,
@@ -49,14 +48,12 @@ const UploadPickerModal: React.FC<UploadPickerModalProps> = ({
   };
 
   const handleSelectOption = (sourceType: 'camera' | 'gallery' | 'document') => {
-    onClose();
-
     if (sourceType === 'camera') {
       const randomImg = SAMPLE_IMAGES[Math.floor(Math.random() * SAMPLE_IMAGES.length)];
       notify('Photo captured successfully');
       onPick({
         uri: randomImg,
-        name: `photo_${Date.now().toString().slice(-4)}.jpg`,
+        name: `doc_photo_${Date.now().toString().slice(-4)}.jpg`,
         size: '2.1 MB',
         type: 'image',
       });
@@ -65,7 +62,7 @@ const UploadPickerModal: React.FC<UploadPickerModalProps> = ({
       notify('Image selected from gallery');
       onPick({
         uri: randomImg,
-        name: `service_img_${Date.now().toString().slice(-4)}.jpg`,
+        name: `doc_image_${Date.now().toString().slice(-4)}.jpg`,
         size: '1.6 MB',
         type: 'image',
       });
@@ -78,103 +75,96 @@ const UploadPickerModal: React.FC<UploadPickerModalProps> = ({
         type: 'document',
       });
     }
+    onClose();
   };
 
+  if (!visible) {
+    return null;
+  }
+
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      statusBarTranslucent
-      onRequestClose={onClose}>
-      <View style={styles.modalContainer}>
-        {/* Backdrop touch area to dismiss */}
-        <Pressable
-          style={StyleSheet.absoluteFill}
-          onPress={onClose}
-          accessibilityLabel="Close upload picker"
-        />
+    <View style={[StyleSheet.absoluteFill, { zIndex: 9999, elevation: 99 }]} className="justify-end">
+      {/* Backdrop touch area to dismiss */}
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        className="bg-black/50"
+        onPress={onClose}
+        accessibilityLabel="Close upload picker"
+      />
 
-        {/* Bottom Sheet Card */}
-        <View className="bg-white rounded-t-3xl p-5 pb-8 border-t border-slate-200 w-full z-10 shadow-2xl">
-          {/* Header */}
-          <View className="flex-row items-center justify-between pb-4 mb-2 border-b border-slate-100">
-            <Text className="text-base sm:text-lg font-bold text-slate-900">{title}</Text>
-            <Pressable
-              onPress={onClose}
-              hitSlop={12}
-              className="p-1 -mr-1"
-              style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}>
-              <Icon name="close" size={22} color="#667085" />
-            </Pressable>
-          </View>
-
-          {/* Options */}
-          <View className="gap-3">
-            <Pressable
-              className="flex-row items-center p-3.5 bg-slate-50 border border-slate-200 rounded-xl"
-              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-              onPress={() => handleSelectOption('camera')}>
-              <View className="w-10 h-10 rounded-full bg-emerald-100 items-center justify-center mr-3.5">
-                <Icon name="camera-outline" size={22} color="#07522C" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-sm font-bold text-slate-800">Take Photo</Text>
-                <Text className="text-xs text-slate-500">Capture using device camera</Text>
-              </View>
-              <Icon name="chevron-right" size={20} color="#98A2B3" />
-            </Pressable>
-
-            <Pressable
-              className="flex-row items-center p-3.5 bg-slate-50 border border-slate-200 rounded-xl"
-              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-              onPress={() => handleSelectOption('gallery')}>
-              <View className="w-10 h-10 rounded-full bg-emerald-100 items-center justify-center mr-3.5">
-                <Icon name="image-outline" size={22} color="#07522C" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-sm font-bold text-slate-800">Choose from Gallery</Text>
-                <Text className="text-xs text-slate-500">Select photos from your gallery</Text>
-              </View>
-              <Icon name="chevron-right" size={20} color="#98A2B3" />
-            </Pressable>
-
-            {allowDocs && (
-              <Pressable
-                className="flex-row items-center p-3.5 bg-slate-50 border border-slate-200 rounded-xl"
-                style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-                onPress={() => handleSelectOption('document')}>
-                <View className="w-10 h-10 rounded-full bg-emerald-100 items-center justify-center mr-3.5">
-                  <Icon name="file-document-outline" size={22} color="#07522C" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-sm font-bold text-slate-800">Browse Files</Text>
-                  <Text className="text-xs text-slate-500">PDF, JPG, PNG up to 10 MB</Text>
-                </View>
-                <Icon name="chevron-right" size={20} color="#98A2B3" />
-              </Pressable>
-            )}
-          </View>
-
-          {/* Cancel Button */}
+      {/* Bottom Sheet Card */}
+      <View
+        className="bg-white rounded-t-3xl p-5 pb-8 border-t border-slate-200 w-full shadow-2xl"
+        style={{ zIndex: 10000, elevation: 100 }}>
+        {/* Header */}
+        <View className="flex-row items-center justify-between pb-4 mb-2 border-b border-slate-100">
+          <Text className="text-base sm:text-lg font-bold text-slate-900">{title}</Text>
           <Pressable
-            className="mt-4 h-12 rounded-xl bg-slate-100 items-center justify-center"
-            style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-            onPress={onClose}>
-            <Text className="text-sm font-bold text-slate-700">Cancel</Text>
+            onPress={onClose}
+            hitSlop={12}
+            className="p-1 -mr-1"
+            style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}>
+            <Icon name="close" size={22} color="#667085" />
           </Pressable>
         </View>
+
+        {/* Options */}
+        <View className="gap-3">
+          <Pressable
+            className="flex-row items-center p-3.5 bg-slate-50 border border-slate-200 rounded-xl"
+            style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+            onPress={() => handleSelectOption('camera')}>
+            <View className="w-10 h-10 rounded-full bg-emerald-100 items-center justify-center mr-3.5">
+              <Icon name="camera-outline" size={22} color="#07522C" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-sm font-bold text-slate-800">Take Photo</Text>
+              <Text className="text-xs text-slate-500">Capture using device camera</Text>
+            </View>
+            <Icon name="chevron-right" size={20} color="#98A2B3" />
+          </Pressable>
+
+          <Pressable
+            className="flex-row items-center p-3.5 bg-slate-50 border border-slate-200 rounded-xl"
+            style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+            onPress={() => handleSelectOption('gallery')}>
+            <View className="w-10 h-10 rounded-full bg-emerald-100 items-center justify-center mr-3.5">
+              <Icon name="image-outline" size={22} color="#07522C" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-sm font-bold text-slate-800">Choose from Gallery</Text>
+              <Text className="text-xs text-slate-500">Select photos from your gallery</Text>
+            </View>
+            <Icon name="chevron-right" size={20} color="#98A2B3" />
+          </Pressable>
+
+          {allowDocs && (
+            <Pressable
+              className="flex-row items-center p-3.5 bg-slate-50 border border-slate-200 rounded-xl"
+              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+              onPress={() => handleSelectOption('document')}>
+              <View className="w-10 h-10 rounded-full bg-emerald-100 items-center justify-center mr-3.5">
+                <Icon name="file-document-outline" size={22} color="#07522C" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-sm font-bold text-slate-800">Browse Files</Text>
+                <Text className="text-xs text-slate-500">PDF, JPG, PNG up to 10 MB</Text>
+              </View>
+              <Icon name="chevron-right" size={20} color="#98A2B3" />
+            </Pressable>
+          )}
+        </View>
+
+        {/* Cancel Button */}
+        <Pressable
+          className="mt-4 h-12 rounded-xl bg-slate-100 items-center justify-center"
+          style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+          onPress={onClose}>
+          <Text className="text-sm font-bold text-slate-700">Cancel</Text>
+        </Pressable>
       </View>
-    </Modal>
+    </View>
   );
 };
-
-const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
-    justifyContent: 'flex-end',
-  },
-});
 
 export default UploadPickerModal;

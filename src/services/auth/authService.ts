@@ -19,6 +19,8 @@ import {
   resendOtp as resendOtpApi,
   verifyOtp as verifyOtpApi,
   registerPartnerApi,
+  registerApplicantApi,
+  completeRegistrationApi,
   AuthApiResponse,
 } from '../../common/api/authApi';
 import { UserProfile, RegistrationData } from '../../types';
@@ -116,6 +118,27 @@ export const registerPartner = async (
   return registerPartnerApi(data);
 };
 
+/**
+ * Dispatches an initial registration OTP to verify applicant phone number.
+ */
+export const registerApplicant = async (
+  mobile: string,
+  fullName: string,
+  email?: string,
+): Promise<AuthApiResponse> => {
+  return registerApplicantApi(mobile, fullName, email);
+};
+
+/**
+ * Creates permanent applicant profile in PostgreSQL using verified registration token.
+ */
+export const completeRegistration = async (
+  registrationToken: string,
+  data: RegistrationData,
+): Promise<AuthApiResponse<UserProfile>> => {
+  return completeRegistrationApi(registrationToken, data);
+};
+
 export const authService = {
   saveToken,
   getToken,
@@ -125,6 +148,8 @@ export const authService = {
   sendOtp,
   resendOtp,
   verifyOtp,
+  registerApplicant,
+  completeRegistration,
   registerPartner,
 };
 
