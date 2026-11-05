@@ -18,6 +18,7 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { JobProvider, useJobs } from './src/context/JobContext';
 import { useNotifications } from './src/services/notifications/useNotifications';
 import { NotificationToast } from './src/components/NotificationToast';
+import { InAppToast } from './src/components/InAppToast';
 import { JobNotificationPayload } from './src/services/notifications';
 
 // ─── Inner component (has access to all context values) ───────────────────────
@@ -41,6 +42,9 @@ const AppContent = () => {
     <>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <AppNavigator />
+
+      {/* Modern In-App Animated Toast notification for all internal app alerts & actions */}
+      <InAppToast />
 
       {/* In-app notification banner — slides in when a new job arrives */}
       <NotificationToast

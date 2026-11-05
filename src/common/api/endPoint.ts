@@ -59,8 +59,12 @@ export const ENDPOINTS = {
     WORK_SELECTION: '/api/v1/person/profile/work-selection',
     /** Check onboarding progress */
     ONBOARDING_PROGRESS: '/api/v1/person/onboarding/progress',
+    /** Check onboarding progress alias */
+    ONBOARDING_PROGRESS_ALIAS: '/api/v1/person/profile/onboarding/progress',
     /** Submit onboarding step */
     ONBOARDING_SUBMIT: '/api/v1/person/onboarding/submit',
+    /** Submit onboarding step alias */
+    ONBOARDING_SUBMIT_ALIAS: '/api/v1/person/profile/onboarding/submit',
   },
 
   // ── Public Service Catalog ────────────────────────────────────────────────
@@ -93,24 +97,58 @@ export const ENDPOINTS = {
     START: (id: string) => `/api/v1/person/jobs/${id}/start`,
     /** Complete job and record completion notes */
     COMPLETE: (id: string) => `/api/v1/person/jobs/${id}/complete`,
-    /** Upload photographic evidence (before/after photos) */
+    /** Photographic evidence management for assigned job */
     EVIDENCE: (id: string) => `/api/v1/person/jobs/${id}/evidence`,
-    /** Extra work quotes/requests */
+    /** Photographic evidence by human-readable job number */
+    EVIDENCE_BY_NO: (jobNo: string) => `/api/v1/person/jobs/by-no/${jobNo}/evidence`,
+    /** Extra work quotes/requests list or create */
     EXTRA_WORK: (id: string) => `/api/v1/person/jobs/${id}/extra-work`,
+    /** Specific extra work request details or patch update */
+    EXTRA_WORK_DETAIL: (id: string, requestId: string) => `/api/v1/person/jobs/${id}/extra-work/${requestId}`,
+    /** Upload supporting expense receipt for extra work */
+    EXTRA_WORK_RECEIPT: (id: string, requestId: string) => `/api/v1/person/jobs/${id}/extra-work/${requestId}/receipt`,
+    /** Upload photographic evidence for extra work */
+    EXTRA_WORK_EVIDENCE: (id: string, requestId: string) => `/api/v1/person/jobs/${id}/extra-work/${requestId}/evidence`,
+    /** Cancel unpaid extra work request */
+    EXTRA_WORK_CANCEL: (id: string, requestId: string) => `/api/v1/person/jobs/${id}/extra-work/${requestId}/cancel`,
+    /** Collect direct Cash or UPI payment for approved extra work */
+    EXTRA_WORK_COLLECT: (id: string, requestId: string) => `/api/v1/person/jobs/${id}/extra-work/${requestId}/collect-direct`,
   },
 
   // ── Financial & Wallet ────────────────────────────────────────────────────
   FINANCIAL: {
     /** Get financial and wallet summary (gross, net, pending) */
     SUMMARY: '/api/v1/person/financial/summary',
+    /** Wallet summary alias */
+    WALLET_SUMMARY: '/api/v1/person/wallet/summary',
     /** Get fixed-salary / payout earnings history */
     EARNINGS: '/api/v1/person/financial/earnings',
+    /** Wallet earnings history alias */
+    WALLET_EARNINGS: '/api/v1/person/wallet/earnings',
     /** Get financial ledger transactions */
     LEDGER: '/api/v1/person/financial/ledger',
+    /** Wallet ledger transactions alias */
+    WALLET_LEDGER: '/api/v1/person/wallet/ledger',
     /** Get current salary configuration */
     SALARY: '/api/v1/person/financial/salary',
+    /** Wallet salary configuration alias */
+    WALLET_SALARY: '/api/v1/person/wallet/salary',
     /** Get pending deductions */
     PENDING_DEDUCTIONS: '/api/v1/person/financial/pending-deductions',
+    /** Wallet pending deductions alias */
+    WALLET_PENDING_DEDUCTIONS: '/api/v1/person/wallet/pending-deductions',
+    /** Get deduction recovery events history */
+    RECOVERY_EVENTS: (deductionId: string) => `/api/v1/person/financial/pending-deductions/${deductionId}/recovery-events`,
+    /** Wallet deduction recovery events history alias */
+    WALLET_RECOVERY_EVENTS: (deductionId: string) => `/api/v1/person/wallet/pending-deductions/${deductionId}/recovery-events`,
+  },
+
+  // ── Media Delivery ───────────────────────────────────────────────────────
+  MEDIA: {
+    /** Download or view private media file using HMAC token */
+    DOWNLOAD: (token: string) => `/api/v1/media/download?token=${encodeURIComponent(token)}`,
+    /** Deliver public media asset */
+    PUBLIC: (assetPath: string) => `/api/v1/media/public/${assetPath}`,
   },
 
   // ── FCM Push Token (Planned / Standard Route) ─────────────────────────────

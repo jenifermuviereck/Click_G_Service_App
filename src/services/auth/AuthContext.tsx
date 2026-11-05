@@ -41,6 +41,8 @@ import {
   stopLocationTracking,
 } from '../location/locationService';
 import { UserProfile } from '../../types';
+import profileApi from '../../common/api/profileApi';
+import { BASE_URL } from '../../common/api/apiClient';
 
 export interface AuthContextValue {
   isAuthenticated: boolean;
@@ -116,6 +118,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (savedUser) {
           setUser(savedUser);
+        }
+
+        // 3. Keep profile, avatar, and verification status synchronized with server
+        if (savedToken) {
+          try {
+            const profileRes = await profileApi.getProfile();
+            if (profileRes.success && profileRes.data) {
+              const p = profileRes.data;
+              const fullAvatar = p.avatarUrl
+                ? (p.avatarUrl.startsWith('http') ? p.avatarUrl : `${BASE_URL}/${p.avatarUrl.replace(/^\//, '')}`)
+                : (savedUser?.avatarUrl || undefined);
+
+              const freshUser: UserProfile = {
+                ...(savedUser || {
+                  id: p.id,
+                  mobile: p.phone,
+                  status: 'offline',
+                  verified: p.status === 'APPROVED',
+                }),
+                name: p.fullName || savedUser?.name || 'Partner',
+                avatarUrl: fullAvatar,
+                email: p.email || savedUser?.email,
+                verified: p.status === 'APPROVED',
+              };
+              setUser(freshUser);
+              saveUser(freshUser).catch(() => {});
+            }
+          } catch (profileErr) {
+            console.warn('[AuthContext] Profile sync deferred:', profileErr);
+          }
         }
       } catch {
         setIsAuthenticated(false);

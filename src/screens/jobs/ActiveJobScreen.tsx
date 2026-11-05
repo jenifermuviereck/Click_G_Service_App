@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Linking,
-  ToastAndroid,
   Platform,
   Alert,
 } from 'react-native';
@@ -13,6 +12,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 import { useJobs } from '../../context/JobContext';
+import showNotification from '../../common/utils/notification';
 
 const ActiveJobScreen = () => {
   const insets = useSafeAreaInsets();
@@ -22,14 +22,6 @@ const ActiveJobScreen = () => {
   const [timelineExpanded, setTimelineExpanded] = useState(false);
 
   const rawJob = route?.params?.job || activeJob;
-
-  const showNotification = (msg: string) => {
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(msg, ToastAndroid.SHORT);
-    } else {
-      Alert.alert('Notice', msg);
-    }
-  };
 
   if (!rawJob) {
     return (

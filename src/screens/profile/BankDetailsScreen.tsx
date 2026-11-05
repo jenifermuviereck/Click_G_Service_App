@@ -5,15 +5,17 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  ToastAndroid,
   Platform,
-  Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from '../../components/Icon';
 import profileApi from '../../common/api/profileApi';
+import { StorageKeys } from '../../common/constants/storage';
+import showNotification from '../../common/utils/notification';
 
 const BankDetailsScreen = () => {
   const insets = useSafeAreaInsets();
@@ -26,38 +28,92 @@ const BankDetailsScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  const showNotification = (msg: string) => {
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(msg, ToastAndroid.SHORT);
-    } else {
-      Alert.alert('Notice', msg);
-    }
-  };
-
   useEffect(() => {
+    let isMounted = true;
+
     const fetchBankDetails = async () => {
       try {
-        const res = await profileApi.getProfile();
-        if (res.success && res.data) {
-          const p = res.data as any;
+        // 1. Read locally cached bank details first for instant UI population
+        const cachedRaw = await AsyncStorage.getItem(StorageKeys.BANK_DETAILS);
+        if (cachedRaw && isMounted) {
+          try {
+            const cached = JSON.parse(cachedRaw);
+            if (cached.accountHolderName) setAccountHolder(cached.accountHolderName);
+            if (cached.ifscCode) setIfscCode(cached.ifscCode);
+            if (cached.accountNumber) setAccountNumber(cached.accountNumber);
+            if (cached.displayAccount) {
+              setCurrentAccountDisplay(cached.displayAccount);
+            } else if (cached.bankAccountMasked) {
+              setCurrentAccountDisplay(`Bank ${cached.bankAccountMasked}`);
+            }
+          } catch (e) {
+            // ignore cache parse errors
+          }
+        }
+
+        // 2. Fetch full profile from API (ready for when backend includes bank in GET /profile)
+        const profileRes = await profileApi.getProfile();
+        let fallbackName = '';
+        if (profileRes.success && profileRes.data && isMounted) {
+          const p = profileRes.data as any;
+          if (p.fullName) fallbackName = p.fullName;
           if (p.bank) {
-            setAccountHolder(p.bank.accountHolderName || '');
-            setAccountNumber(p.bank.accountNumber || '');
-            setIfscCode(p.bank.ifscCode || '');
-            if (p.bank.accountNumber) {
-              const last4 = p.bank.accountNumber.slice(-4);
-              setCurrentAccountDisplay(`${p.bank.bankName || 'Bank'} •••• ${last4}`);
+            if (p.bank.accountHolderName) setAccountHolder(p.bank.accountHolderName);
+            if (p.bank.accountNumber) setAccountNumber(p.bank.accountNumber);
+            if (p.bank.ifscCode) setIfscCode(p.bank.ifscCode);
+            const masked =
+              p.bank.bankAccountMasked ||
+              (p.bank.accountNumber ? `•••• ${p.bank.accountNumber.slice(-4)}` : null);
+            if (masked) {
+              setCurrentAccountDisplay(`${p.bank.bankName || 'Bank'} ${masked}`);
             }
           }
+        }
+
+        // 3. Fallback: query onboarding progress checklist (Step 4 contains bankAccountMasked)
+        try {
+          const progressRes = await profileApi.getOnboardingProgress();
+          if (progressRes.success && isMounted) {
+            const steps: any[] = (progressRes.data as any)?.steps || [];
+            const bankStep = steps.find(
+              (s: any) => s.step === 4 || (s.name && String(s.name).includes('BANK')),
+            );
+            if (bankStep) {
+              if (bankStep.data?.bankAccountMasked) {
+                setCurrentAccountDisplay(`Bank ${bankStep.data.bankAccountMasked}`);
+              } else if (bankStep.isCompleted && currentAccountDisplay === 'Not configured yet') {
+                setCurrentAccountDisplay('Bank Account Configured');
+              }
+              if (bankStep.data?.ifscCode) {
+                setIfscCode(prev => prev || bankStep.data.ifscCode);
+              }
+              if (bankStep.data?.accountHolderName) {
+                setAccountHolder(prev => prev || bankStep.data.accountHolderName);
+              }
+            }
+          }
+        } catch (progressErr) {
+          console.warn('[BankDetailsScreen] onboarding progress check skipped:', progressErr);
+        }
+
+        // 4. If account holder name is still empty, prefill with user's full name from profile
+        if (fallbackName && isMounted) {
+          setAccountHolder(prev => prev || fallbackName);
         }
       } catch (err) {
         console.warn('[BankDetailsScreen] fetchBankDetails error:', err);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchBankDetails();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleSave = async () => {
@@ -72,17 +128,35 @@ const BankDetailsScreen = () => {
         accountNumber: accountNumber.trim(),
         ifscCode: ifscCode.trim().toUpperCase(),
       });
+
       if (res.success) {
-        showNotification('Bank details saved successfully');
+        const bankData = res.data as any;
         const last4 = accountNumber.trim().slice(-4);
-        setCurrentAccountDisplay(`Bank •••• ${last4}`);
+        const masked = bankData?.bankAccountMasked || `•••• ${last4}`;
+        const display = `Bank ${masked}`;
+
+        setCurrentAccountDisplay(display);
+
+        // Cache locally for immediate persistence across app restarts
+        await AsyncStorage.setItem(
+          StorageKeys.BANK_DETAILS,
+          JSON.stringify({
+            accountHolderName: accountHolder.trim(),
+            accountNumber: accountNumber.trim(),
+            ifscCode: ifscCode.trim().toUpperCase(),
+            bankAccountMasked: masked,
+            displayAccount: display,
+          }),
+        );
+
+        showNotification(res.message || 'Bank details saved successfully');
         navigation.goBack();
       } else {
-        showNotification(res.message || 'Failed to save bank details. Try again.');
+        showNotification(res.message || 'Failed to save bank details');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.warn('[BankDetailsScreen] save error:', err);
-      showNotification('Network error. Please try again.');
+      showNotification(err?.message || 'Error saving bank details');
     } finally {
       setIsSaving(false);
     }
@@ -107,7 +181,14 @@ const BankDetailsScreen = () => {
           <Text className="text-xs text-slate-500 mt-3">Loading bank details...</Text>
         </View>
       ) : (
-        <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          className="flex-1">
+          <ScrollView
+            contentContainerStyle={{ padding: 16, paddingBottom: 160 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag">
           {/* Payout Account Header Card */}
           <View className="bg-slate-50 rounded-2xl border border-slate-200 p-4 mb-5">
             <View className="flex-row justify-between items-center mb-2">
@@ -176,6 +257,7 @@ const BankDetailsScreen = () => {
             Check your account number and IFSC carefully to avoid payment delays.
           </Text>
         </ScrollView>
+      </KeyboardAvoidingView>
       )}
 
       {/* Save Button */}

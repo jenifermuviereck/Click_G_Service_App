@@ -427,6 +427,40 @@ export const registerPartnerApi = async (
 };
 
 /**
+ * Rotates the refresh token and returns a fresh JWT accessToken / refreshToken pair
+ */
+export const refreshTokenApi = async (
+  refreshToken: string,
+): Promise<AuthApiResponse<{ accessToken: string; refreshToken: string; expiresIn: number }>> => {
+  const res = await apiClient.post<{
+    accessToken: string;
+    refreshToken: string;
+    tokenType: string;
+    expiresIn: number;
+  }>(
+    ENDPOINTS.AUTH.REFRESH_TOKEN,
+    { refreshToken },
+    { skipAuth: true },
+  );
+
+  if (res.success && res.data) {
+    return {
+      success: true,
+      message: 'Token refreshed successfully',
+      token: res.data.accessToken,
+      refreshToken: res.data.refreshToken,
+      data: res.data,
+    };
+  }
+
+  return {
+    success: false,
+    message: res.message || 'Failed to refresh token',
+    statusCode: res.statusCode,
+  };
+};
+
+/**
  * Logs out the serviceman on the server
  */
 export const logoutApi = async (): Promise<ApiResponse> => {
@@ -437,6 +471,7 @@ export default {
   sendOtp,
   resendOtp,
   verifyOtp,
+  refreshTokenApi,
   completeRegistrationApi,
   registerPartnerApi,
   logoutApi,

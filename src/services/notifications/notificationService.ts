@@ -22,6 +22,7 @@ import notifee, {
 } from '@notifee/react-native';
 import { Platform } from 'react-native';
 import { addNotification } from './notificationHistoryService';
+import showNotification from '../../common/utils/notification';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -188,6 +189,10 @@ export function subscribeToForegroundMessages(
   const unsubscribe = getMessaging().onMessage(async remoteMessage => {
     console.log('[FCM] Foreground message:', remoteMessage);
     await displayJobNotification(remoteMessage);
+
+    const title = remoteMessage.notification?.title || 'Notification';
+    const body = remoteMessage.notification?.body || 'New alert received';
+    showNotification(body, 'info', title);
 
     if (onJobReceived && remoteMessage.data) {
       onJobReceived(remoteMessage.data as unknown as JobNotificationPayload);

@@ -43,6 +43,27 @@ export interface LedgerTransaction {
   referenceId?: string;
 }
 
+export interface PendingDeductionItem {
+  id: string;
+  category: string;
+  totalAmount: string;
+  recoveredAmount: string;
+  remainingAmount: string;
+  status: 'PENDING' | 'IN_RECOVERY' | 'COMPLETED' | 'WAIVED';
+  description?: string;
+  createdAt: string;
+}
+
+export interface DeductionRecoveryEvent {
+  id: string;
+  deductionId: string;
+  recoveredAmount: string;
+  remainingAfter: string;
+  recoveredAt: string;
+  payoutCycleId?: string;
+  notes?: string;
+}
+
 /**
  * Retrieves overall financial summary (earnings, wallet balance, deductions)
  */
@@ -77,10 +98,36 @@ export const getSalaryConfig = async (): Promise<ApiResponse> => {
   return apiClient.get(ENDPOINTS.FINANCIAL.SALARY);
 };
 
+/**
+ * Retrieves pending financial deductions with optional status/category filter
+ */
+export const getPendingDeductions = async (
+  page = 1,
+  limit = 20,
+  status?: string,
+  category?: string,
+): Promise<ApiResponse<{ items: PendingDeductionItem[]; total: number }>> => {
+  let url = `${ENDPOINTS.FINANCIAL.PENDING_DEDUCTIONS}?page=${page}&limit=${limit}`;
+  if (status) url += `&status=${status}`;
+  if (category) url += `&category=${category}`;
+  return apiClient.get(url);
+};
+
+/**
+ * Retrieves recovery events history for a specific pending deduction
+ */
+export const getDeductionRecoveryEvents = async (
+  deductionId: string,
+): Promise<ApiResponse<DeductionRecoveryEvent[]>> => {
+  return apiClient.get(ENDPOINTS.FINANCIAL.RECOVERY_EVENTS(deductionId));
+};
+
 export default {
   getFinancialSummary,
   getEarningsHistory,
   getLedgerTransactions,
   getSalaryConfig,
+  getPendingDeductions,
+  getDeductionRecoveryEvents,
 };
 

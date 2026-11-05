@@ -19,6 +19,7 @@ import ProfileScreen from '../screens/profile/ProfileScreen';
 import PersonalDetailsScreen from '../screens/profile/PersonalDetailsScreen';
 import DocumentsVerificationScreen from '../screens/profile/DocumentsVerificationScreen';
 import BankDetailsScreen from '../screens/profile/BankDetailsScreen';
+import SkillsServicesScreen from '../screens/profile/SkillsServicesScreen';
 import HelpSupportScreen from '../screens/profile/HelpSupportScreen';
 import SettingsScreen from '../screens/profile/SettingsScreen';
 import { useAuth } from '../context/AuthContext';
@@ -79,6 +80,7 @@ const AppNavigator = () => {
 
         {/* Profile & Settings Sub-screens */}
         <Stack.Screen name="PersonalDetails" component={PersonalDetailsScreen} />
+        <Stack.Screen name="SkillsServices" component={SkillsServicesScreen} />
         <Stack.Screen name="DocumentsVerification" component={DocumentsVerificationScreen} />
         <Stack.Screen name="BankDetails" component={BankDetailsScreen} />
         <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />

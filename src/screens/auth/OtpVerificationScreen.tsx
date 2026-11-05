@@ -4,11 +4,10 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  ToastAndroid,
   ScrollView,
   ActivityIndicator,
   Platform,
-  Alert,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -16,6 +15,7 @@ import Icon from '../../components/Icon';
 import ClickGLogo from '../../components/ClickGLogo';
 import authService from '../../services/authService';
 import { useAuth } from '../../context/AuthContext';
+import showNotification from '../../common/utils/notification';
 
 const OtpVerificationScreen = () => {
   // Swagger Person-App-Auth specifies exactly 5-digit numeric OTP
@@ -50,14 +50,6 @@ const OtpVerificationScreen = () => {
     }, 1000);
     return () => clearInterval(timer);
   }, [secondsLeft]);
-
-  const showNotification = (msg: string) => {
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(msg, ToastAndroid.SHORT);
-    } else {
-      Alert.alert('Notice', msg);
-    }
-  };
 
   /**
    * Handles user input inside each individual OTP digit box.
@@ -107,7 +99,7 @@ const OtpVerificationScreen = () => {
   const handleVerify = async () => {
     const fullOtp = otp.join('');
     if (fullOtp.length !== 5) {
-      showNotification('Please enter 5-digit verification code');
+      showNotification('Please enter 5-digit verification code', 'warning');
       return;
     }
 
@@ -116,16 +108,16 @@ const OtpVerificationScreen = () => {
       const response = await authService.verifyOtp(mobile, fullOtp);
       if (response.success && response.user && response.token) {
         await login(response.token, response.user);
-        showNotification(`Welcome back, ${response.user.name || 'Partner'}!`);
+        showNotification(`Welcome back, ${response.user.name || 'Partner'}!`, 'success');
         navigation.reset({
           index: 0,
           routes: [{ name: 'Home' }],
         });
       } else {
-        showNotification(response.message || 'OTP verification failed');
+        showNotification(response.message || 'OTP verification failed', 'error');
       }
     } catch {
-      showNotification('Network error during verification');
+      showNotification('Network error during verification', 'error');
     } finally {
       setLoading(false);
     }
@@ -142,9 +134,9 @@ const OtpVerificationScreen = () => {
       if (res.testOtp) {
         setMockOtp(res.testOtp);
       }
-      showNotification(res.message || 'New OTP sent');
+      showNotification(res.message || 'New OTP sent', 'info');
     } catch {
-      showNotification('Failed to resend OTP');
+      showNotification('Failed to resend OTP', 'error');
     }
   };
 
@@ -162,88 +154,93 @@ const OtpVerificationScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-        className="flex-1 px-5 sm:px-6"
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled">
-        <View className="w-full max-w-sm self-center py-6">
-          {/* Logo Section */}
-          <View className="items-center justify-center mb-8 sm:mb-10">
-            <ClickGLogo size="large" showTagline={true} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        className="flex-1">
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingVertical: 20, paddingBottom: 60 }}
+          className="flex-1 px-5 sm:px-6"
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag">
+          <View className="w-full max-w-sm self-center py-6">
+            {/* Logo Section */}
+            <View className="items-center justify-center mb-8 sm:mb-10">
+              <ClickGLogo size="large" showTagline={true} />
+            </View>
+
+            {/* Center Verification Section */}
+            <View className="w-full">
+              {/* Mobile Input Display */}
+              <View className="flex-row items-center border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-6">
+                <Icon name="cellphone" size={22} color="#1D2939" style={{ marginRight: 12 }} />
+                <Text className="text-[15px] text-slate-800 tracking-wider font-medium">{displayMobile}</Text>
+              </View>
+
+              {/* 5 Digit OTP Boxes (aligned with Swagger specification) */}
+              <View className="flex-row justify-center mb-4 gap-2 sm:gap-3">
+                {otp.map((digit, idx) => (
+                  <View
+                    key={idx}
+                    className="w-11 h-12 sm:w-13 sm:h-14 rounded-xl border border-slate-200 bg-white items-center justify-center shadow-sm">
+                    <TextInput
+                      ref={inputRefs[idx]}
+                      className="text-xl sm:text-2xl font-bold text-slate-900 text-center w-full h-full p-0"
+                      keyboardType="number-pad"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChangeText={v => handleOtpChange(v, idx)}
+                      onKeyPress={e => handleKeyPress(e, idx)}
+                      selectTextOnFocus
+                    />
+                  </View>
+                ))}
+              </View>
+
+              {/* Server Mock OTP / Testing Helper */}
+              {mockOtp ? (
+                <TouchableOpacity
+                  onPress={() => setOtp(mockOtp.slice(0, 5).split(''))}
+                  className="self-center bg-emerald-50 border border-emerald-300 px-3.5 py-1.5 rounded-full mb-5 flex-row items-center active:opacity-75 shadow-sm">
+                  <Icon name="key-variant" size={14} color="#07522C" style={{ marginRight: 6 }} />
+                  <Text className="text-xs font-bold text-brand-green">
+                    Verification OTP: <Text className="tracking-widest font-black">{mockOtp}</Text> (Tap to fill)
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+
+              {/* Resend Code Pill Badge */}
+              <View className="items-center mb-6">
+                <TouchableOpacity
+                  className="flex-row items-center bg-[#EDF3FB] px-4 py-2 rounded-lg"
+                  activeOpacity={0.8}
+                  onPress={handleResend}
+                  disabled={secondsLeft > 0}>
+                  <Text className="text-xs sm:text-[13px] text-slate-700 font-medium">Resend code in </Text>
+                  <Text className="text-xs sm:text-[13px] text-amber-700 font-bold">{formattedTimer}</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Verify Button (Centered Pill) */}
+              <TouchableOpacity
+                className="bg-brand-green w-48 sm:w-52 h-12 rounded-xl self-center items-center justify-center shadow-md shadow-brand-green/20"
+                activeOpacity={0.85}
+                disabled={loading}
+                onPress={handleVerify}>
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text className="text-white text-[15px] font-bold tracking-wide">Verify</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Center Verification Section */}
-          <View className="w-full">
-            {/* Mobile Input Display */}
-            <View className="flex-row items-center border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-6">
-              <Icon name="cellphone" size={22} color="#1D2939" style={{ marginRight: 12 }} />
-              <Text className="text-[15px] text-slate-800 tracking-wider font-medium">{displayMobile}</Text>
-            </View>
-
-            {/* 5 Digit OTP Boxes (aligned with Swagger specification) */}
-            <View className="flex-row justify-center mb-4 gap-2 sm:gap-3">
-              {otp.map((digit, idx) => (
-                <View
-                  key={idx}
-                  className="w-11 h-12 sm:w-13 sm:h-14 rounded-xl border border-slate-200 bg-white items-center justify-center shadow-sm">
-                  <TextInput
-                    ref={inputRefs[idx]}
-                    className="text-xl sm:text-2xl font-bold text-slate-900 text-center w-full h-full p-0"
-                    keyboardType="number-pad"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChangeText={v => handleOtpChange(v, idx)}
-                    onKeyPress={e => handleKeyPress(e, idx)}
-                    selectTextOnFocus
-                  />
-                </View>
-              ))}
-            </View>
-
-            {/* Server Mock OTP / Testing Helper */}
-            {mockOtp ? (
-              <TouchableOpacity
-                onPress={() => setOtp(mockOtp.slice(0, 5).split(''))}
-                className="self-center bg-emerald-50 border border-emerald-300 px-3.5 py-1.5 rounded-full mb-5 flex-row items-center active:opacity-75 shadow-sm">
-                <Icon name="key-variant" size={14} color="#07522C" style={{ marginRight: 6 }} />
-                <Text className="text-xs font-bold text-brand-green">
-                  Verification OTP: <Text className="tracking-widest font-black">{mockOtp}</Text> (Tap to fill)
-                </Text>
-              </TouchableOpacity>
-            ) : null}
-
-            {/* Resend Code Pill Badge */}
-            <View className="items-center mb-6">
-              <TouchableOpacity
-                className="flex-row items-center bg-[#EDF3FB] px-4 py-2 rounded-lg"
-                activeOpacity={0.8}
-                onPress={handleResend}
-                disabled={secondsLeft > 0}>
-                <Text className="text-xs sm:text-[13px] text-slate-700 font-medium">Resend code in </Text>
-                <Text className="text-xs sm:text-[13px] text-amber-700 font-bold">{formattedTimer}</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Verify Button (Centered Pill) */}
-            <TouchableOpacity
-              className="bg-brand-green w-48 sm:w-52 h-12 rounded-xl self-center items-center justify-center shadow-md shadow-brand-green/20"
-              activeOpacity={0.85}
-              disabled={loading}
-              onPress={handleVerify}>
-              {loading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
-              ) : (
-                <Text className="text-white text-[15px] font-bold tracking-wide">Verify</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Bottom spacer for centering balance */}
-        <View className="h-4" />
-      </ScrollView>
+          {/* Bottom spacer for centering balance */}
+          <View className="h-4" />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

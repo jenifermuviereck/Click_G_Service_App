@@ -4,17 +4,17 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  ToastAndroid,
   ScrollView,
   ActivityIndicator,
   Platform,
-  Alert,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 import ClickGLogo from '../../components/ClickGLogo';
 import authService from '../../services/authService';
+import showNotification from '../../common/utils/notification';
 
 const LoginScreen = () => {
   const [mobile, setMobile] = useState('');
@@ -22,30 +22,17 @@ const LoginScreen = () => {
   const navigation = useNavigation<any>();
 
   /**
-   * Displays a native Toast or Alert notification to the user.
-   *
-   * @param {string} msg - The message text to show.
-   */
-  const showNotification = (msg: string) => {
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(msg, ToastAndroid.SHORT);
-    } else {
-      Alert.alert('Notice', msg);
-    }
-  };
-
-  /**
    * Validates the 10-digit mobile number and requests an OTP from authService.
    * On success, navigates to the OTP Verification screen with the mobile number.
    */
   const handleSendOtp = async () => {
     if (!mobile.trim()) {
-      showNotification('Please enter mobile number');
+      showNotification('Please enter mobile number', 'warning');
       return;
     }
 
     if (!/^\d{10}$/.test(mobile.trim())) {
-      showNotification('Please enter a valid 10-digit mobile number');
+      showNotification('Please enter a valid 10-digit mobile number', 'warning');
       return;
     }
 
@@ -53,16 +40,16 @@ const LoginScreen = () => {
     try {
       const response = await authService.sendOtp(mobile.trim());
       if (response.success) {
-        showNotification(response.message || 'OTP sent successfully');
+        showNotification(response.message || 'OTP sent successfully', 'success');
         navigation.navigate('OtpVerification', {
           mobile: mobile.trim(),
           mockOtp: response.testOtp,
         });
       } else {
-        showNotification(response.message || 'Failed to send OTP');
+        showNotification(response.message || 'Failed to send OTP', 'error');
       }
     } catch {
-      showNotification('Network error while requesting OTP');
+      showNotification('Network error while requesting OTP', 'error');
     } finally {
       setLoading(false);
     }
@@ -81,63 +68,68 @@ const LoginScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-        className="flex-1 px-5 sm:px-6"
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled">
-        <View className="w-full max-w-sm self-center py-6">
-          {/* Logo Section */}
-          <View className="items-center justify-center mb-6 sm:mb-8">
-            <ClickGLogo size="large" showTagline={true} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        className="flex-1">
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingVertical: 24, paddingBottom: 60 }}
+          className="flex-1 px-5 sm:px-6"
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag">
+          <View className="w-full max-w-sm self-center py-6">
+            {/* Logo Section */}
+            <View className="items-center justify-center mb-6 sm:mb-8">
+              <ClickGLogo size="large" showTagline={true} />
+            </View>
+
+            {/* Mobile Number Input */}
+            <View className="flex-row items-center border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-5 focus:border-brand-green">
+              <Icon name="cellphone" size={22} color="#1D2939" style={{ marginRight: 12 }} />
+              <TextInput
+                className="flex-1 text-[15px] text-slate-900 h-full p-0"
+                placeholder="Mobile Number"
+                placeholderTextColor="#98A2B3"
+                keyboardType="number-pad"
+                inputMode="numeric"
+                maxLength={10}
+                value={mobile}
+                onChangeText={handleMobileChange}
+              />
+            </View>
+
+            {/* Send OTP Button (Centered Pill) */}
+            <TouchableOpacity
+              className="bg-brand-green w-48 sm:w-52 h-12 rounded-xl self-center items-center justify-center shadow-md shadow-brand-green/20 mb-6 sm:mb-8"
+              activeOpacity={0.85}
+              disabled={loading}
+              onPress={handleSendOtp}>
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text className="text-white text-[15px] font-bold tracking-wide">Send OTP</Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Registration Card */}
+            <TouchableOpacity
+              className="flex-row items-center bg-[#EDF6EF] border border-[#D1EAD9] rounded-2xl px-4 py-3.5 w-full self-center"
+              activeOpacity={0.88}
+              onPress={() => navigation.navigate('PartnerRegistration', { mobile })}>
+              <View className="w-10 h-10 rounded-full bg-[#D1EAD9] items-center justify-center mr-3.5">
+                <Icon name="account-plus-outline" size={22} color="#07522C" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-xs text-slate-500 mb-0.5">Don't Have a Seller Account</Text>
+                <Text className="text-[14px] sm:text-[15px] font-bold text-brand-green">Service Men Registration</Text>
+              </View>
+              <View className="w-9 h-9 rounded-full bg-brand-green items-center justify-center ml-2">
+                <Icon name="arrow-right" size={18} color="#FFFFFF" />
+              </View>
+            </TouchableOpacity>
           </View>
-
-          {/* Mobile Number Input */}
-          <View className="flex-row items-center border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-5 focus:border-brand-green">
-            <Icon name="cellphone" size={22} color="#1D2939" style={{ marginRight: 12 }} />
-            <TextInput
-              className="flex-1 text-[15px] text-slate-900 h-full p-0"
-              placeholder="Mobile Number"
-              placeholderTextColor="#98A2B3"
-              keyboardType="number-pad"
-              inputMode="numeric"
-              maxLength={10}
-              value={mobile}
-              onChangeText={handleMobileChange}
-            />
-          </View>
-
-          {/* Send OTP Button (Centered Pill) */}
-          <TouchableOpacity
-            className="bg-brand-green w-48 sm:w-52 h-12 rounded-xl self-center items-center justify-center shadow-md shadow-brand-green/20 mb-6 sm:mb-8"
-            activeOpacity={0.85}
-            disabled={loading}
-            onPress={handleSendOtp}>
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
-            ) : (
-              <Text className="text-white text-[15px] font-bold tracking-wide">Send OTP</Text>
-            )}
-          </TouchableOpacity>
-
-          {/* Registration Card */}
-          <TouchableOpacity
-            className="flex-row items-center bg-[#EDF6EF] border border-[#D1EAD9] rounded-2xl px-4 py-3.5 w-full self-center"
-            activeOpacity={0.88}
-            onPress={() => navigation.navigate('PartnerRegistration', { mobile })}>
-            <View className="w-10 h-10 rounded-full bg-[#D1EAD9] items-center justify-center mr-3.5">
-              <Icon name="account-plus-outline" size={22} color="#07522C" />
-            </View>
-            <View className="flex-1">
-              <Text className="text-xs text-slate-500 mb-0.5">Don't Have a Seller Account</Text>
-              <Text className="text-[14px] sm:text-[15px] font-bold text-brand-green">Service Men Registration</Text>
-            </View>
-            <View className="w-9 h-9 rounded-full bg-brand-green items-center justify-center ml-2">
-              <Icon name="arrow-right" size={18} color="#FFFFFF" />
-            </View>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

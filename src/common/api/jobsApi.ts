@@ -166,6 +166,52 @@ export const completeJob = async (
   });
 };
 
+export interface ExtraWorkItemInput {
+  name: string;
+  quantity: number;
+  unitPrice?: number;
+  totalPrice?: number;
+}
+
+export interface CreateExtraWorkPayload {
+  description?: string;
+  additionalCost?: number;
+  items?: ExtraWorkItemInput[];
+  labourCharges?: number;
+  paymentMethod?: 'GATEWAY' | 'CASH' | 'DIRECT_UPI' | 'RAZORPAY';
+  customerNotes?: string;
+}
+
+export interface UpdateExtraWorkPayload {
+  description?: string;
+  items?: ExtraWorkItemInput[];
+  labourCharges?: number;
+  paymentMethod?: 'GATEWAY' | 'CASH' | 'DIRECT_UPI' | 'RAZORPAY';
+  customerNotes?: string;
+}
+
+export interface CollectDirectPaymentPayload {
+  paymentMethod: 'CASH' | 'DIRECT_UPI';
+  amount: number;
+  paymentReference?: string;
+  collectionNotes?: string;
+}
+
+export interface ExtraWorkRequest {
+  id: string;
+  jobId: string;
+  description: string;
+  additionalCost: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PAID' | 'CANCELLED';
+  paymentMethod: string;
+  items?: any[];
+  labourCharges?: number;
+  customerNotes?: string;
+  receiptUrl?: string;
+  evidenceUrl?: string;
+  createdAt: string;
+}
+
 /**
  * Uploads photographic evidence (before/after photos) for a job
  */
@@ -174,6 +220,101 @@ export const uploadJobEvidence = async (
   formData: FormData,
 ): Promise<ApiResponse> => {
   return apiClient.upload(ENDPOINTS.JOBS.EVIDENCE(jobId), formData);
+};
+
+/**
+ * Retrieves photographic evidence list for an assigned job by UUID
+ */
+export const getJobEvidence = async (jobId: string): Promise<ApiResponse<PersonJobEvidence[]>> => {
+  return apiClient.get<PersonJobEvidence[]>(ENDPOINTS.JOBS.EVIDENCE(jobId));
+};
+
+/**
+ * Retrieves photographic evidence list for an assigned job by human-readable job number
+ */
+export const getJobEvidenceByNo = async (jobNo: string): Promise<ApiResponse<PersonJobEvidence[]>> => {
+  return apiClient.get<PersonJobEvidence[]>(ENDPOINTS.JOBS.EVIDENCE_BY_NO(jobNo));
+};
+
+/**
+ * Submits an extra-work quotation request for an assigned job
+ */
+export const createExtraWork = async (
+  jobId: string,
+  data: CreateExtraWorkPayload,
+): Promise<ApiResponse<ExtraWorkRequest>> => {
+  return apiClient.post<ExtraWorkRequest>(ENDPOINTS.JOBS.EXTRA_WORK(jobId), data);
+};
+
+/**
+ * Lists all extra-work quotation requests for an assigned job
+ */
+export const listExtraWork = async (jobId: string): Promise<ApiResponse<ExtraWorkRequest[]>> => {
+  return apiClient.get<ExtraWorkRequest[]>(ENDPOINTS.JOBS.EXTRA_WORK(jobId));
+};
+
+/**
+ * Retrieves details of a specific extra-work request
+ */
+export const getExtraWorkDetail = async (
+  jobId: string,
+  requestId: string,
+): Promise<ApiResponse<ExtraWorkRequest>> => {
+  return apiClient.get<ExtraWorkRequest>(ENDPOINTS.JOBS.EXTRA_WORK_DETAIL(jobId, requestId));
+};
+
+/**
+ * Updates an unpaid extra-work quotation request
+ */
+export const updateExtraWork = async (
+  jobId: string,
+  requestId: string,
+  data: UpdateExtraWorkPayload,
+): Promise<ApiResponse<ExtraWorkRequest>> => {
+  return apiClient.patch<ExtraWorkRequest>(ENDPOINTS.JOBS.EXTRA_WORK_DETAIL(jobId, requestId), data);
+};
+
+/**
+ * Uploads supporting expense receipt/invoice for an extra-work request
+ */
+export const uploadExtraWorkReceipt = async (
+  jobId: string,
+  requestId: string,
+  formData: FormData,
+): Promise<ApiResponse> => {
+  return apiClient.upload(ENDPOINTS.JOBS.EXTRA_WORK_RECEIPT(jobId, requestId), formData);
+};
+
+/**
+ * Uploads photographic evidence for an extra-work request
+ */
+export const uploadExtraWorkEvidence = async (
+  jobId: string,
+  requestId: string,
+  formData: FormData,
+): Promise<ApiResponse> => {
+  return apiClient.upload(ENDPOINTS.JOBS.EXTRA_WORK_EVIDENCE(jobId, requestId), formData);
+};
+
+/**
+ * Cancels an unpaid extra-work request
+ */
+export const cancelExtraWork = async (
+  jobId: string,
+  requestId: string,
+): Promise<ApiResponse> => {
+  return apiClient.post(ENDPOINTS.JOBS.EXTRA_WORK_CANCEL(jobId, requestId), {});
+};
+
+/**
+ * Collects direct Cash or UPI payment for approved extra-work
+ */
+export const collectDirectPayment = async (
+  jobId: string,
+  requestId: string,
+  data: CollectDirectPaymentPayload,
+): Promise<ApiResponse> => {
+  return apiClient.post(ENDPOINTS.JOBS.EXTRA_WORK_COLLECT(jobId, requestId), data);
 };
 
 export default {
@@ -187,5 +328,15 @@ export default {
   startJobWithOtp,
   completeJob,
   uploadJobEvidence,
+  getJobEvidence,
+  getJobEvidenceByNo,
+  createExtraWork,
+  listExtraWork,
+  getExtraWorkDetail,
+  updateExtraWork,
+  uploadExtraWorkReceipt,
+  uploadExtraWorkEvidence,
+  cancelExtraWork,
+  collectDirectPayment,
 };
 

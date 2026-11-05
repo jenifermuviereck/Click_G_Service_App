@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, BackHandler, ToastAndroid, Platform } from 'react-native';
+import { View, BackHandler, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import BottomNavBar from '../../components/BottomNavBar';
@@ -7,6 +7,7 @@ import HomeScreen from './HomeScreen';
 import MyJobsScreen from '../jobs/MyJobsScreen';
 import EarningsScreen from '../earnings/EarningsScreen';
 import ProfileScreen from '../profile/ProfileScreen';
+import showNotification from '../../common/utils/notification';
 
 type TabType = 'Home' | 'Jobs' | 'Earnings' | 'Profile';
 
@@ -50,9 +51,7 @@ const MainTabsScreen = () => {
       }
 
       lastBackPressRef.current = now;
-      if (Platform.OS === 'android') {
-        ToastAndroid.show('Press back again to exit', ToastAndroid.SHORT);
-      }
+      showNotification('Press back again to exit', 'info');
       return true;
     };
 

@@ -81,8 +81,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ hideBottomNav = false, onSwitch
             className="flex-row items-center bg-slate-50 border border-slate-200 rounded-full py-1 px-2.5"
             activeOpacity={0.8}
             onPress={() => (onSwitchTab ? onSwitchTab('Profile') : navigation.navigate('Profile'))}>
-            <View className="w-6 h-6 rounded-full bg-brand-lightGreen items-center justify-center mr-1.5">
-              <Icon name="account" size={16} color="#07522C" />
+            <View className="w-6 h-6 rounded-full bg-brand-lightGreen items-center justify-center mr-1.5 overflow-hidden">
+              {user?.avatarUrl ? (
+                <Image source={{ uri: user.avatarUrl }} className="w-full h-full" />
+              ) : (
+                <Icon name="account" size={16} color="#07522C" />
+              )}
             </View>
             <Text className="text-xs font-semibold text-slate-800 mr-1">Hi, {user?.name || 'Partner'}</Text>
             <Icon name="chevron-down" size={16} color="#667085" />

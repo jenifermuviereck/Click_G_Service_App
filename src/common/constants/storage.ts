@@ -21,6 +21,9 @@ export const StorageKeys = {
 
   /** Key for storing UI theme preferences */
   THEME: '@ClickGService:theme',
+
+  /** Key for storing cached bank details while backend GET endpoint is in development */
+  BANK_DETAILS: '@ClickGService:bankDetails',
 } as const;
 
 export default StorageKeys;

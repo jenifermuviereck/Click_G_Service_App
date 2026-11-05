@@ -5,11 +5,11 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  ToastAndroid,
   Platform,
   Alert,
   Image,
   ActivityIndicator,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -17,6 +17,8 @@ import Icon from '../../components/Icon';
 import UploadPickerModal from '../../components/UploadPickerModal';
 import { useAuth } from '../../context/AuthContext';
 import profileApi from '../../common/api/profileApi';
+import { BASE_URL } from '../../common/api/apiClient';
+import showNotification from '../../common/utils/notification';
 
 const PersonalDetailsScreen = () => {
   const insets = useSafeAreaInsets();
@@ -27,8 +29,10 @@ const PersonalDetailsScreen = () => {
   const [mobile] = useState(user?.mobile || '');
   const [email, setEmail] = useState(user?.email || '');
   const [address, setAddress] = useState('');
+  const [area, setArea] = useState('');
   const [city, setCity] = useState(user?.city || '');
   const [pincode, setPincode] = useState('');
+  const [experienceYears, setExperienceYears] = useState('');
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [isPickerVisible, setIsPickerVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,7 +49,21 @@ const PersonalDetailsScreen = () => {
           setEmail(p.email || user?.email || '');
           setCity(p.address?.city || user?.city || '');
           setAddress(p.address?.addressLine1 || '');
+          setArea(p.address?.area || p.address?.addressLine2 || '');
           setPincode(p.address?.pincode || '');
+          if (p.experienceYears !== undefined && p.experienceYears !== null) {
+            setExperienceYears(String(p.experienceYears));
+          } else if (p.address?.experienceInYears !== undefined && p.address?.experienceInYears !== null) {
+            setExperienceYears(String(p.address.experienceInYears));
+          }
+          if (p.avatarUrl) {
+            const fullUrl = p.avatarUrl.startsWith('http')
+              ? p.avatarUrl
+              : `${BASE_URL}/${p.avatarUrl.replace(/^\//, '')}`;
+            setProfilePhoto(fullUrl);
+          } else if (user?.avatarUrl) {
+            setProfilePhoto(user.avatarUrl);
+          }
         }
       } catch (err) {
         console.warn('[PersonalDetailsScreen] loadProfile error:', err);
@@ -56,14 +74,6 @@ const PersonalDetailsScreen = () => {
     loadProfile();
   }, []);
 
-  const showNotification = (msg: string) => {
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(msg, ToastAndroid.SHORT);
-    } else {
-      Alert.alert('Notice', msg);
-    }
-  };
-
   const handleSave = async () => {
     if (!fullName.trim()) {
       showNotification('Full name is required');
@@ -72,15 +82,22 @@ const PersonalDetailsScreen = () => {
     try {
       setIsSaving(true);
 
-      // 1. Update profile avatar if a photo was picked
-      if (profilePhoto) {
+      // 1. Update profile avatar if a local photo was picked
+      let savedAvatarUrl = profilePhoto;
+      if (profilePhoto && !profilePhoto.startsWith('http')) {
         const formData = new FormData();
-        formData.append('avatar', {
+        formData.append('file', {
           uri: profilePhoto,
           name: 'avatar.jpg',
           type: 'image/jpeg',
         } as any);
-        await profileApi.uploadAvatar(formData);
+        const avatarRes = await profileApi.uploadAvatar(formData);
+        if (avatarRes.success && avatarRes.data?.avatarUrl) {
+          const rawKey = avatarRes.data.avatarUrl;
+          savedAvatarUrl = rawKey.startsWith('http')
+            ? rawKey
+            : `${BASE_URL}/${rawKey.replace(/^\//, '')}`;
+        }
       }
 
       // 2. Update profile name & email
@@ -89,18 +106,26 @@ const PersonalDetailsScreen = () => {
         email: email.trim() || undefined,
       });
 
-      // 3. Update residential address
-      if (address.trim() || city.trim() || pincode.trim()) {
+      // 3. Update residential address & experience
+      if (address.trim() || area.trim() || city.trim() || pincode.trim() || experienceYears.trim()) {
         await profileApi.updateAddress({
-          addressLine1: address.trim(),
-          city: city.trim(),
-          state: '',
-          pincode: pincode.trim(),
+          addressLine1: address.trim() || 'Address',
+          area: area.trim() || undefined,
+          city: city.trim() || 'Bengaluru',
+          state: 'Karnataka',
+          pincode: pincode.trim() || '560001',
+          experienceInYears: experienceYears.trim() ? parseInt(experienceYears.trim(), 10) : undefined,
         });
       }
 
-      // 4. Sync local auth context
-      await updateUser({ name: fullName.trim(), email: email.trim(), city: city.trim() });
+      // 4. Sync local auth context with fresh avatar
+      await updateUser({
+        name: fullName.trim(),
+        email: email.trim(),
+        city: city.trim(),
+        experienceYears: experienceYears.trim() || undefined,
+        avatarUrl: savedAvatarUrl || undefined,
+      });
 
       showNotification('Personal details updated successfully');
       navigation.goBack();
@@ -131,7 +156,14 @@ const PersonalDetailsScreen = () => {
           <Text className="text-xs text-slate-500 mt-3">Loading profile...</Text>
         </View>
       ) : (
-      <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        className="flex-1">
+        <ScrollView
+          contentContainerStyle={{ padding: 16, paddingBottom: 160 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag">
         {/* Profile Photo Upload */}
         {profilePhoto ? (
           <View className="flex-row items-center bg-emerald-50/60 border border-emerald-200 rounded-2xl p-3.5 mb-5">
@@ -217,6 +249,18 @@ const PersonalDetailsScreen = () => {
           />
         </View>
 
+        {/* Area / Landmark */}
+        <Text className="text-xs font-semibold text-slate-700 mb-1.5">Area / Landmark (optional)</Text>
+        <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-4 justify-center">
+          <TextInput
+            className="text-xs sm:text-sm text-slate-900 p-0"
+            value={area}
+            onChangeText={setArea}
+            placeholder="e.g. Near Metro Station"
+            placeholderTextColor="#98A2B3"
+          />
+        </View>
+
         {/* City and PIN Code Row */}
         <View className="flex-row gap-3 mb-4">
           <View className="flex-1">
@@ -248,7 +292,23 @@ const PersonalDetailsScreen = () => {
             </View>
           </View>
         </View>
-      </ScrollView>
+
+        {/* Experience in Years */}
+        <Text className="text-xs font-semibold text-slate-700 mb-1.5">Experience in Years</Text>
+        <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-4 justify-center">
+          <TextInput
+            className="text-xs sm:text-sm text-slate-900 p-0"
+            value={experienceYears}
+            onChangeText={v => setExperienceYears(v.replace(/[^0-9]/g, '').slice(0, 2))}
+            placeholder="e.g. 5"
+            placeholderTextColor="#98A2B3"
+            keyboardType="number-pad"
+            inputMode="numeric"
+            maxLength={2}
+          />
+        </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
       )}
 
       {/* Bottom Save Button */}

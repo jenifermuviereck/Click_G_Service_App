@@ -23,9 +23,12 @@ export interface PersonProfile {
   experienceYears?: number;
   address?: {
     addressLine1?: string;
+    addressLine2?: string;
+    area?: string;
     city?: string;
     state?: string;
     pincode?: string;
+    experienceInYears?: number;
   };
   kyc?: {
     aadhaarNumberMasked?: string;
@@ -43,8 +46,33 @@ export interface BankDetailsPayload {
   accountHolderName: string;
   accountNumber: string;
   ifscCode: string;
+  upiVpa?: string;
+  googlePayUpiId?: string;
+  phonePeUpiId?: string;
   bankName?: string;
   upiId?: string;
+}
+
+export interface AddressPayload {
+  addressLine1: string;
+  city: string;
+  state?: string;
+  pincode: string;
+  addressLine2?: string;
+  area?: string;
+  landmark?: string;
+  experienceInYears?: number;
+}
+
+export interface WorkSelectionPayload {
+  /** List of active skill names or service identifiers (Swagger: skills) */
+  skills?: string[];
+  /** List of active service area UUIDs */
+  serviceAreaIds: string[];
+  /** Optional list of active service category UUIDs or identifiers */
+  serviceCategoryIds?: string[];
+  /** Backward-compatible alias for skill names */
+  skillIds?: string[];
 }
 
 export interface CatalogCategory {
@@ -101,32 +129,73 @@ export const uploadKycDocument = async (formData: FormData): Promise<ApiResponse
 /**
  * Updates residential address
  */
-export const updateAddress = async (data: {
-  addressLine1: string;
-  city: string;
-  state: string;
-  pincode: string;
-  landmark?: string;
-}): Promise<ApiResponse> => {
-  return apiClient.patch(ENDPOINTS.PROFILE.ADDRESS, data);
+export const updateAddress = async (data: AddressPayload): Promise<ApiResponse> => {
+  const payload = {
+    addressLine1: data.addressLine1,
+    city: data.city,
+    state: data.state && data.state.trim() ? data.state.trim() : 'Karnataka',
+    pincode: data.pincode,
+    addressLine2: data.addressLine2 || undefined,
+    area: data.area || data.landmark || undefined,
+    experienceInYears: typeof data.experienceInYears === 'number' ? data.experienceInYears : undefined,
+  };
+  return apiClient.patch(ENDPOINTS.PROFILE.ADDRESS, payload);
 };
 
 /**
  * Updates bank account and UPI details for weekly/monthly payouts
  */
 export const updateBankDetails = async (data: BankDetailsPayload): Promise<ApiResponse> => {
-  return apiClient.patch(ENDPOINTS.PROFILE.BANK, data);
+  const payload = {
+    accountHolderName: data.accountHolderName,
+    accountNumber: data.accountNumber,
+    ifscCode: data.ifscCode,
+    upiVpa: data.upiVpa || data.upiId || undefined,
+    googlePayUpiId: data.googlePayUpiId || undefined,
+    phonePeUpiId: data.phonePeUpiId || undefined,
+  };
+  return apiClient.patch(ENDPOINTS.PROFILE.BANK, payload);
+};
+
+/**
+ * Updates masked identity details (PAN and Aadhaar) for authenticated professional
+ */
+export const updateKycDetails = async (data: {
+  panNumber?: string;
+  aadhaarNumber?: string;
+}): Promise<ApiResponse> => {
+  return apiClient.patch(ENDPOINTS.PROFILE.KYC_DETAILS, data);
 };
 
 /**
  * Updates skill categories & geographic service areas
  */
-export const updateWorkSelection = async (data: {
-  skillIds: string[];
-  serviceAreaIds: string[];
-  serviceCategoryIds?: string[];
-}): Promise<ApiResponse> => {
-  return apiClient.patch(ENDPOINTS.PROFILE.WORK_SELECTION, data);
+export const updateWorkSelection = async (data: WorkSelectionPayload): Promise<ApiResponse> => {
+  const payload = {
+    skills: data.skills || data.skillIds || [],
+    serviceAreaIds: data.serviceAreaIds || [],
+    serviceCategoryIds: data.serviceCategoryIds || undefined,
+  };
+  return apiClient.patch(ENDPOINTS.PROFILE.WORK_SELECTION, payload);
+};
+
+/**
+ * Retrieves onboarding progress and next incomplete step
+ */
+export const getOnboardingProgress = async (): Promise<ApiResponse<{
+  currentStep: number;
+  completedSteps: string[];
+  isComplete: boolean;
+  nextIncompleteStep?: string;
+}>> => {
+  return apiClient.get(ENDPOINTS.PROFILE.ONBOARDING_PROGRESS);
+};
+
+/**
+ * Submits complete onboarding application for administrative review
+ */
+export const submitOnboarding = async (): Promise<ApiResponse> => {
+  return apiClient.post(ENDPOINTS.PROFILE.ONBOARDING_SUBMIT, {});
 };
 
 // ── Public Catalog APIs ──────────────────────────────────────────────────────
@@ -150,7 +219,10 @@ export default {
   uploadKycDocument,
   updateAddress,
   updateBankDetails,
+  updateKycDetails,
   updateWorkSelection,
+  getOnboardingProgress,
+  submitOnboarding,
   getCatalogCategories,
   getCatalogSkills,
   getCatalogServiceAreas,

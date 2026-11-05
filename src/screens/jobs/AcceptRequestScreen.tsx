@@ -6,7 +6,6 @@ import {
   ScrollView,
   Modal,
   Linking,
-  ToastAndroid,
   Platform,
   Alert,
 } from 'react-native';
@@ -16,6 +15,7 @@ import Icon from '../../components/Icon';
 import BottomNavBar from '../../components/BottomNavBar';
 import { useJobs } from '../../context/JobContext';
 import { ServiceRequest } from '../../types';
+import showNotification from '../../common/utils/notification';
 
 const AcceptRequestScreen = () => {
   const navigation = useNavigation<any>();
@@ -23,14 +23,6 @@ const AcceptRequestScreen = () => {
 
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
   const [selectedJobToReject, setSelectedJobToReject] = useState<ServiceRequest | null>(null);
-
-  const showNotification = (msg: string) => {
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(msg, ToastAndroid.SHORT);
-    } else {
-      Alert.alert('Notice', msg);
-    }
-  };
 
   const handleAccept = (item: ServiceRequest) => {
     const accepted = acceptJob(item.id);

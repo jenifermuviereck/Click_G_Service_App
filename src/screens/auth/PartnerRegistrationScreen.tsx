@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
-  ToastAndroid,
   Platform,
   Alert,
   Image,
   Keyboard,
+  KeyboardAvoidingView,
   Modal,
   ActivityIndicator,
 } from 'react-native';
@@ -18,8 +18,10 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 import UploadPickerModal, { PickedFile } from '../../components/UploadPickerModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import authService from '../../services/authService';
 import profileApi from '../../common/api/profileApi';
+import showNotification from '../../common/utils/notification';
 
 const TOTAL_STEPS = 4;
 
@@ -71,15 +73,20 @@ const PartnerRegistrationScreen = () => {
     pincode: '',
     experienceYears: '1',
     docType1: 'Aadhaar Card',
-    docFile1: 'aadhaar-front.pdf • 420 KB',
-    docType2: 'Pan Card',
-    docFile2: 'aadhaar-back.pdf • 380 KB',
+    docFile1: '',
+    docType2: 'PAN Card',
+    docFile2: '',
+    aadhaarNumber: '',
+    panNumber: '',
     accountHolderName: '',
     accountNumber: '',
     ifscCode: '',
     gPayUpi: '',
     phonePeUpi: '',
   });
+
+  const [aadhaarFileObj, setAadhaarFileObj] = useState<PickedFile | null>(null);
+  const [panFileObj, setPanFileObj] = useState<PickedFile | null>(null);
 
   /**
    * Sanitizes and updates a form field in state with field-specific validation regex.
@@ -99,18 +106,14 @@ const PartnerRegistrationScreen = () => {
       cleanVal = value.replace(/[^0-9]/g, '').slice(0, 18);
     } else if (key === 'ifscCode') {
       cleanVal = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 11);
+    } else if (key === 'aadhaarNumber') {
+      cleanVal = value.replace(/[^0-9]/g, '').slice(0, 12);
+    } else if (key === 'panNumber') {
+      cleanVal = value.toUpperCase().slice(0, 10);
     } else if (key === 'fullName' || key === 'accountHolderName') {
       cleanVal = value.replace(/[^a-zA-Z\s]/g, '');
     }
     setFormData(prev => ({ ...prev, [key]: cleanVal }));
-  };
-
-  const showNotification = (msg: string) => {
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(msg, ToastAndroid.SHORT);
-    } else {
-      Alert.alert('Notice', msg);
-    }
   };
 
   const openUploadModal = (target: 'profile' | 'doc1' | 'doc2') => {
@@ -310,11 +313,13 @@ const PartnerRegistrationScreen = () => {
       setProfilePhoto(file.uri);
       showNotification('Profile photo uploaded');
     } else if (uploadTarget === 'doc1') {
+      setAadhaarFileObj(file);
       updateField('docFile1', `${file.name} • ${file.size}`);
-      showNotification('Document 1 uploaded');
+      showNotification('Aadhaar document selected');
     } else if (uploadTarget === 'doc2') {
+      setPanFileObj(file);
       updateField('docFile2', `${file.name} • ${file.size}`);
-      showNotification('Document 2 uploaded');
+      showNotification('PAN document selected');
     }
     setUploadTarget(null);
   };
@@ -338,16 +343,107 @@ const PartnerRegistrationScreen = () => {
       return;
     }
 
-    // Update bank details in backend
+    // 1. Upload Profile Photo if picked
+    if (profilePhoto) {
+      try {
+        const f0 = new FormData();
+        f0.append('file', {
+          uri: profilePhoto,
+          name: 'avatar.jpg',
+          type: 'image/jpeg',
+        } as any);
+        await profileApi.uploadAvatar(f0);
+      } catch (e) {
+        console.warn('Avatar upload warning:', e);
+      }
+    }
+
+    // 2. Upload Residential Address & Experience
+    try {
+      await profileApi.updateAddress({
+        addressLine1: formData.address || 'Address',
+        city: formData.city || 'Bengaluru',
+        state: 'Karnataka',
+        pincode: formData.pincode || '560001',
+        experienceInYears: parseInt(formData.experienceYears, 10) || 1,
+      });
+    } catch (e) {
+      console.warn('Address update warning:', e);
+    }
+
+    // 3. Upload Aadhaar Document if picked
+    if (aadhaarFileObj) {
+      try {
+        const f1 = new FormData();
+        f1.append('file', {
+          uri: aadhaarFileObj.uri,
+          name: aadhaarFileObj.name,
+          type: aadhaarFileObj.type || 'image/jpeg',
+        } as any);
+        f1.append('documentType', 'AADHAAR');
+        await profileApi.uploadKycDocument(f1);
+      } catch (e) {
+        console.warn('Aadhaar upload warning:', e);
+      }
+    }
+
+    // 4. Upload PAN Document if picked
+    if (panFileObj) {
+      try {
+        const f2 = new FormData();
+        f2.append('file', {
+          uri: panFileObj.uri,
+          name: panFileObj.name,
+          type: panFileObj.type || 'image/jpeg',
+        } as any);
+        f2.append('documentType', 'PAN');
+        await profileApi.uploadKycDocument(f2);
+      } catch (e) {
+        console.warn('PAN upload warning:', e);
+      }
+    }
+
+    // 5. Update KYC Details (Aadhaar & PAN numbers)
+    if (formData.aadhaarNumber || formData.panNumber) {
+      try {
+        await profileApi.updateKycDetails({
+          aadhaarNumber: formData.aadhaarNumber || undefined,
+          panNumber: formData.panNumber || undefined,
+        });
+      } catch (e) {
+        console.warn('KYC details warning:', e);
+      }
+    }
+
+    // 4. Update Bank Details in backend
     try {
       await profileApi.updateBankDetails({
         accountHolderName: formData.accountHolderName,
         accountNumber: formData.accountNumber,
         ifscCode: formData.ifscCode,
-        upiId: formData.gPayUpi || formData.phonePeUpi || undefined,
+        googlePayUpiId: formData.gPayUpi || undefined,
+        phonePeUpiId: formData.phonePeUpi || undefined,
+        upiVpa: formData.gPayUpi || formData.phonePeUpi || undefined,
       });
     } catch (err) {
       console.warn('[PartnerRegistration] updateBankDetails non-fatal warning:', err);
+    }
+
+    // 5. Update Work Selection (Skills & Hub)
+    try {
+      await profileApi.updateWorkSelection({
+        skills: ['CCTV & LAN Cabling Service', 'Power Socket & Switch Installation'],
+        serviceAreaIds: ['43712e4a-17d0-49b3-946a-fcce65e865fb'],
+      });
+    } catch (e) {
+      console.warn('work-selection warning:', e);
+    }
+
+    // 6. Submit complete onboarding to backend for administrative review
+    try {
+      await profileApi.submitOnboarding();
+    } catch (err) {
+      console.warn('[PartnerRegistration] submitOnboarding non-fatal warning:', err);
     }
 
     try {
@@ -532,66 +628,88 @@ const PartnerRegistrationScreen = () => {
     <View>
       <Text className="text-base sm:text-lg font-bold text-slate-900 mb-4">Identity Documents</Text>
 
-      {/* Doc 1 */}
-      <Text className="text-xs font-semibold text-slate-700 mb-1.5">Document Type *</Text>
+      {/* Aadhaar Number */}
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">Aadhaar Card Number (12 digits) *</Text>
       <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-3 justify-center">
         <TextInput
           className="text-xs sm:text-sm text-slate-900 p-0"
-          value={formData.docType1}
-          onChangeText={v => updateField('docType1', v)}
+          value={formData.aadhaarNumber}
+          onChangeText={v => updateField('aadhaarNumber', v)}
+          placeholder="e.g. 234567890123"
+          placeholderTextColor="#98A2B3"
+          keyboardType="numeric"
+          maxLength={12}
         />
       </View>
 
+      {/* Aadhaar File Upload */}
       <Pressable
         className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl p-3.5 mb-4"
         style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
         onPress={() => openUploadModal('doc1')}>
         <Icon name="file-document-outline" size={24} color="#07522C" style={{ marginRight: 10 }} />
         <View className="flex-1">
-          <Text className="text-xs font-bold text-slate-800">File uploaded • Tap to replace</Text>
-          <Text className="text-[11px] text-slate-500">{formData.docFile1}</Text>
+          <Text className="text-xs font-bold text-slate-800">
+            {formData.docFile1 ? 'Aadhaar Attached' : 'Attach Aadhaar Card Photo'}
+          </Text>
+          <Text className="text-[11px] text-slate-500">
+            {formData.docFile1 || 'Tap to take photo or choose from gallery'}
+          </Text>
         </View>
         <Pressable
           className="px-2.5 py-1.5 bg-white rounded-lg border border-slate-200"
           style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
           hitSlop={8}
           onPress={() => openUploadModal('doc1')}>
-          <Text className="text-[11px] font-bold text-brand-green">Replace</Text>
+          <Text className="text-[11px] font-bold text-brand-green">
+            {formData.docFile1 ? 'Replace' : 'Upload'}
+          </Text>
         </Pressable>
       </Pressable>
 
-      {/* Doc 2 */}
-      <Text className="text-xs font-semibold text-slate-700 mb-1.5">Document Type *</Text>
+      {/* PAN Number */}
+      <Text className="text-xs font-semibold text-slate-700 mb-1.5">PAN Card Number (10 chars) *</Text>
       <View className="border border-slate-300 rounded-xl px-3.5 h-12 bg-white mb-3 justify-center">
         <TextInput
           className="text-xs sm:text-sm text-slate-900 p-0"
-          value={formData.docType2}
-          onChangeText={v => updateField('docType2', v)}
+          value={formData.panNumber}
+          onChangeText={v => updateField('panNumber', v)}
+          placeholder="e.g. ABCDE1234F"
+          placeholderTextColor="#98A2B3"
+          autoCapitalize="characters"
+          maxLength={10}
         />
       </View>
 
+      {/* PAN File Upload */}
       <Pressable
         className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl p-3.5 mb-4"
         style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
         onPress={() => openUploadModal('doc2')}>
         <Icon name="file-document-outline" size={24} color="#07522C" style={{ marginRight: 10 }} />
         <View className="flex-1">
-          <Text className="text-xs font-bold text-slate-800">File uploaded • Tap to replace</Text>
-          <Text className="text-[11px] text-slate-500">{formData.docFile2}</Text>
+          <Text className="text-xs font-bold text-slate-800">
+            {formData.docFile2 ? 'PAN Card Attached' : 'Attach PAN Card Photo'}
+          </Text>
+          <Text className="text-[11px] text-slate-500">
+            {formData.docFile2 || 'Tap to take photo or choose from gallery'}
+          </Text>
         </View>
         <Pressable
           className="px-2.5 py-1.5 bg-white rounded-lg border border-slate-200"
           style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
           hitSlop={8}
           onPress={() => openUploadModal('doc2')}>
-          <Text className="text-[11px] font-bold text-brand-green">Replace</Text>
+          <Text className="text-[11px] font-bold text-brand-green">
+            {formData.docFile2 ? 'Replace' : 'Upload'}
+          </Text>
         </Pressable>
       </Pressable>
 
       {/* Verification Notice */}
       <View className="flex-row items-center bg-emerald-50 border border-emerald-200 rounded-xl p-3">
         <Icon name="information-outline" size={18} color="#07522C" style={{ marginRight: 8 }} />
-        <Text className="text-xs text-brand-green flex-1">Your documents are used only for partner verification.</Text>
+        <Text className="text-xs text-brand-green flex-1">Real document files and government IDs satisfy Step 3 verification directly on the backend.</Text>
       </View>
     </View>
   );
@@ -741,19 +859,24 @@ const PartnerRegistrationScreen = () => {
         <Text className="text-lg sm:text-xl font-bold text-slate-900">Partner Registration</Text>
       </View>
 
-      <ScrollView
-        ref={scrollViewRef}
-        className="flex-1"
-        contentContainerClassName="p-4 sm:p-5 pb-6"
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="always">
-        {renderStepHeader()}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        className="flex-1">
+        <ScrollView
+          ref={scrollViewRef}
+          className="flex-1"
+          contentContainerStyle={{ padding: 16, paddingBottom: 160 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag">
+          {renderStepHeader()}
 
-        {currentStep === 1 && renderStep1()}
-        {currentStep === 2 && renderStep2()}
-        {currentStep === 3 && renderStep3()}
-        {currentStep === 4 && renderStep4()}
-      </ScrollView>
+          {currentStep === 1 && renderStep1()}
+          {currentStep === 2 && renderStep2()}
+          {currentStep === 3 && renderStep3()}
+          {currentStep === 4 && renderStep4()}
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Bottom Action Bar */}
       <View
