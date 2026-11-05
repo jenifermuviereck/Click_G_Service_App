@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   Modal,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 import BottomNavBar from '../../components/BottomNavBar';
 import { useAuth } from '../../context/AuthContext';
+import profileApi from '../../common/api/profileApi';
+import { BASE_URL } from '../../common/api/apiClient';
 
 interface ProfileScreenProps {
   hideBottomNav?: boolean;
@@ -19,8 +22,34 @@ interface ProfileScreenProps {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ hideBottomNav = false, onBackToHome }) => {
   const navigation = useNavigation<any>();
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(user?.avatarUrl || null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchProfile = async () => {
+      try {
+        const res = await profileApi.getProfile();
+        if (res.success && res.data && isMounted) {
+          const p = res.data;
+          if (p.avatarUrl) {
+            const fullUrl = p.avatarUrl.startsWith('http')
+              ? p.avatarUrl
+              : `${BASE_URL}/${p.avatarUrl.replace(/^\//, '')}`;
+            setAvatarUrl(fullUrl);
+            updateUser({ avatarUrl: fullUrl });
+          }
+        }
+      } catch (err) {
+        console.warn('[ProfileScreen] fetchProfile error:', err);
+      }
+    };
+    fetchProfile();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleConfirmLogout = async () => {
     setLogoutModalVisible(false);
@@ -40,7 +69,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ hideBottomNav = false, on
     {
       title: 'Skills & Services',
       icon: 'wrench-outline',
-      onPress: () => {},
+      onPress: () => navigation.navigate('SkillsServices'),
     },
     {
       title: 'Documents & Verification',
@@ -80,14 +109,25 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ hideBottomNav = false, on
       <ScrollView contentContainerClassName="p-4 sm:p-5 pb-6" showsVerticalScrollIndicator={false}>
         {/* Profile Card Header */}
         <View className="flex-row items-center bg-white rounded-2xl border border-slate-200 p-4 mb-4 shadow-sm">
-          <View className="w-14 h-14 rounded-full bg-brand-lightGreen items-center justify-center mr-3.5 border-2 border-brand-green/20">
-            <Text className="text-xl font-extrabold text-brand-green">K</Text>
-          </View>
+          {avatarUrl ? (
+            <Image
+              source={{ uri: avatarUrl }}
+              className="w-14 h-14 rounded-full mr-3.5 border-2 border-brand-green/20"
+            />
+          ) : (
+            <View className="w-14 h-14 rounded-full bg-brand-lightGreen items-center justify-center mr-3.5 border-2 border-brand-green/20">
+              <Text className="text-xl font-extrabold text-brand-green">
+                {(user?.name?.[0] || 'P').toUpperCase()}
+              </Text>
+            </View>
+          )}
           <View className="flex-1">
-            <Text className="text-base sm:text-lg font-bold text-slate-900">{user?.name || 'Kumar'}</Text>
-            <Text className="text-xs sm:text-[13px] text-slate-500 mb-1">{user?.mobile || '+91 98765 43210'}</Text>
+            <Text className="text-base sm:text-lg font-bold text-slate-900">{user?.name || 'Partner'}</Text>
+            <Text className="text-xs sm:text-[13px] text-slate-500 mb-1">{user?.mobile || 'No phone set'}</Text>
             <View className="self-start bg-emerald-100 px-2 py-0.5 rounded-full">
-              <Text className="text-[10px] sm:text-xs font-bold text-emerald-800">Verified partner</Text>
+              <Text className="text-[10px] sm:text-xs font-bold text-emerald-800">
+                {user?.verified ? 'Verified partner' : 'Partner'}
+              </Text>
             </View>
           </View>
         </View>
@@ -99,7 +139,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ hideBottomNav = false, on
               key={index}
               className={`flex-row items-center px-4 py-3.5 ${
                 index !== menuItems.length - 1 ? 'border-b border-slate-100' : ''
-              } active:bg-slate-50`}
+              }`}
               activeOpacity={0.7}
               onPress={item.onPress}>
               <View className="w-8 h-8 rounded-lg bg-emerald-50 items-center justify-center mr-3">
@@ -114,7 +154,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ hideBottomNav = false, on
         {/* Logout Row Card */}
         <View className="bg-white rounded-2xl border border-slate-200 overflow-hidden mb-6 shadow-sm">
           <TouchableOpacity
-            className="flex-row items-center px-4 py-3.5 active:bg-red-50"
+            className="flex-row items-center px-4 py-3.5"
             activeOpacity={0.7}
             onPress={() => setLogoutModalVisible(true)}>
             <View className="w-8 h-8 rounded-lg bg-red-50 items-center justify-center mr-3">

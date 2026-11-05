@@ -65,7 +65,7 @@ const SettingsScreen = () => {
         {/* Privacy & Account Section */}
         <Text className="text-xs sm:text-sm font-bold text-slate-900 mb-2.5">Privacy &amp; account</Text>
         <View className="bg-white rounded-2xl border border-slate-200 p-4 mb-5 shadow-sm">
-          <TouchableOpacity className="flex-row justify-between items-center py-1.5 active:opacity-70" activeOpacity={0.7}>
+          <TouchableOpacity className="flex-row justify-between items-center py-1.5" activeOpacity={0.7}>
             <Text className="text-xs sm:text-sm font-medium text-slate-700">Terms of Service</Text>
             <View className="flex-row items-center">
               <Text className="text-xs text-slate-400 mr-1">View</Text>
@@ -75,7 +75,7 @@ const SettingsScreen = () => {
 
           <View className="h-px bg-slate-100 my-2.5" />
 
-          <TouchableOpacity className="flex-row justify-between items-center py-1.5 active:opacity-70" activeOpacity={0.7}>
+          <TouchableOpacity className="flex-row justify-between items-center py-1.5" activeOpacity={0.7}>
             <Text className="text-xs sm:text-sm font-medium text-slate-700">Privacy Policy</Text>
             <View className="flex-row items-center">
               <Text className="text-xs text-slate-400 mr-1">View</Text>
@@ -97,6 +97,29 @@ const SettingsScreen = () => {
             <Text className="text-xs sm:text-sm font-semibold text-slate-900">1.0.0</Text>
           </View>
         </View>
+
+        {/* Dev Tools — only visible in development */}
+        {__DEV__ && (
+          <View style={{ marginTop: 20 }}>
+            <Text className="text-xs sm:text-sm font-bold text-slate-900 mb-2.5">🛠️ Developer Tools</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('NotificationTest')}
+              style={{
+                backgroundColor: '#FF6B00',
+                borderRadius: 14,
+                paddingVertical: 14,
+                paddingHorizontal: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              activeOpacity={0.8}>
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>
+                🔬  Open Notification Test Lab
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

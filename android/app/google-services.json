@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "886073831606",
+    "project_id": "clickg-359bd",
+    "storage_bucket": "clickg-359bd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:886073831606:android:3bc8645ba3dd652a73b617",
+        "android_client_info": {
+          "package_name": "com.clickgserviceapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBPZrZrryqEqAOKRz92i55ltuvQkzV0xrs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

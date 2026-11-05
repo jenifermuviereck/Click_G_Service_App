@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  ToastAndroid,
   Platform,
   Alert,
   Image,
@@ -14,6 +13,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 import UploadPickerModal, { PickedFile } from '../../components/UploadPickerModal';
 import { useJobs } from '../../context/JobContext';
+import showNotification from '../../common/utils/notification';
 
 const CompleteServiceScreen = () => {
   const insets = useSafeAreaInsets();
@@ -23,32 +23,22 @@ const CompleteServiceScreen = () => {
 
   const rawJob = route?.params?.job || activeJob || {};
   const job = {
-    id: rawJob.id || 'req-1',
-    bookingRef: rawJob.bookingRef || 'CG-1042',
-    category: rawJob.category || rawJob.title || 'Plumbing Repair',
-    scheduledTime: rawJob.scheduledTime || rawJob.timeStr || 'Today • 10:30 AM',
-    estimatedEarnings: Number(rawJob.estimatedEarnings ?? rawJob.price ?? 1200),
-    grossAmount: Number(rawJob.grossAmount ?? (rawJob.price ? Math.round(rawJob.price * 1.25) : 1500)),
-    platformCommission: Number(rawJob.platformCommission ?? (rawJob.price ? Math.round(rawJob.price * 0.25) : 300)),
-    additionalCharges: Number(rawJob.additionalCharges ?? 500),
-    gstAmount: Number(rawJob.gstAmount ?? 170),
-    netEarnings: Number(rawJob.netEarnings ?? rawJob.price ?? 1870),
+    id: rawJob.id || '',
+    bookingRef: rawJob.bookingRef || 'CG-JOB',
+    category: rawJob.category || rawJob.title || 'Service Job',
+    scheduledTime: rawJob.scheduledTime || rawJob.timeStr || 'Today',
+    estimatedEarnings: Number(rawJob.estimatedEarnings ?? rawJob.price ?? 0),
+    grossAmount: Number(rawJob.grossAmount ?? rawJob.price ?? 0),
+    platformCommission: Number(rawJob.platformCommission ?? 0),
+    additionalCharges: Number(rawJob.additionalCharges ?? 0),
+    gstAmount: Number(rawJob.gstAmount ?? 0),
+    netEarnings: Number(rawJob.netEarnings ?? rawJob.estimatedEarnings ?? rawJob.price ?? 0),
   };
 
   const [isCustomerChecked, setIsCustomerChecked] = useState(true);
-  const [beforePhotos, setBeforePhotos] = useState<string[]>([
-    'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&q=80',
-  ]);
+  const [beforePhotos, setBeforePhotos] = useState<string[]>([]);
   const [afterPhotos, setAfterPhotos] = useState<string[]>([]);
   const [uploadTarget, setUploadTarget] = useState<'before' | 'after' | null>(null);
-
-  const showNotification = (msg: string) => {
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(msg, ToastAndroid.SHORT);
-    } else {
-      Alert.alert('Notice', msg);
-    }
-  };
 
   const handlePhotoPicked = (file: PickedFile) => {
     if (uploadTarget === 'before') {

@@ -6,7 +6,6 @@ import {
   ScrollView,
   Modal,
   Linking,
-  ToastAndroid,
   Platform,
   Alert,
 } from 'react-native';
@@ -16,6 +15,7 @@ import Icon from '../../components/Icon';
 import BottomNavBar from '../../components/BottomNavBar';
 import { useJobs } from '../../context/JobContext';
 import { ServiceRequest } from '../../types';
+import showNotification from '../../common/utils/notification';
 
 const AcceptRequestScreen = () => {
   const navigation = useNavigation<any>();
@@ -23,14 +23,6 @@ const AcceptRequestScreen = () => {
 
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
   const [selectedJobToReject, setSelectedJobToReject] = useState<ServiceRequest | null>(null);
-
-  const showNotification = (msg: string) => {
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(msg, ToastAndroid.SHORT);
-    } else {
-      Alert.alert('Notice', msg);
-    }
-  };
 
   const handleAccept = (item: ServiceRequest) => {
     const accepted = acceptJob(item.id);
@@ -93,12 +85,12 @@ const AcceptRequestScreen = () => {
               {/* Card Top Row */}
               <View className="flex-row justify-between items-center mb-1">
                 <View className="flex-row items-center flex-1 mr-2">
-                  <Text className="text-sm sm:text-base font-bold text-slate-900 mr-2">{item.category}</Text>
+                  <Text className="text-sm sm:text-base font-bold text-slate-900 mr-2" numberOfLines={1}>{item.category}</Text>
                   <View className="bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                     <Text className="text-[10px] sm:text-xs font-semibold text-emerald-800">{item.distanceKm}</Text>
                   </View>
                 </View>
-                <View className="bg-slate-100 px-2.5 py-1 rounded-md">
+                <View className="bg-slate-100 px-2.5 py-1 rounded-md shrink-0">
                   <Text className="text-[11px] font-semibold text-slate-600">{item.scheduledTime}</Text>
                 </View>
               </View>

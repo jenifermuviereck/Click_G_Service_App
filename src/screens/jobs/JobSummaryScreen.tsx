@@ -14,19 +14,20 @@ const JobSummaryScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
 
-  const job = route?.params?.job || {
-    title: 'Painting Service',
-    bookingRef: 'CG-1039',
-    completedOn: 'Today • 8:45 AM',
-    customer: 'Rahul Mehta',
-    area: 'Indiranagar, Bengaluru',
-    description: 'Bedroom wall touch-up completed. Work checked and approved by the customer.',
-    grossAmount: 4000,
-    commission: 800,
-    netEarnings: 3200,
-    paymentStatus: 'Paid',
-    txRef: 'TX-1039',
-    payoutAccount: 'HDFC Bank •••• 9012',
+  const rawJob = route?.params?.job || {};
+  const job = {
+    title: rawJob.category || rawJob.title || 'Completed Service',
+    bookingRef: rawJob.bookingRef || 'CG-JOB',
+    completedOn: rawJob.completedAt || rawJob.scheduledTime || 'Recently',
+    customer: rawJob.customerName || rawJob.customer || 'Customer',
+    area: rawJob.fullAddress || rawJob.locationArea || rawJob.area || 'Service Premise',
+    description: rawJob.description || 'Service completed successfully.',
+    grossAmount: Number(rawJob.grossAmount ?? rawJob.price ?? 0),
+    commission: Number(rawJob.platformCommission ?? 0),
+    netEarnings: Number(rawJob.netEarnings ?? rawJob.estimatedEarnings ?? rawJob.price ?? 0),
+    paymentStatus: rawJob.paymentStatus || 'Settled',
+    txRef: rawJob.txRef || 'TX-COMPLETED',
+    payoutAccount: rawJob.payoutAccount || 'Bank Payout',
   };
 
   return (
@@ -109,12 +110,12 @@ const JobSummaryScreen = () => {
 
           <View className="flex-row justify-between py-2 border-b border-slate-100">
             <Text className="text-xs sm:text-[13px] text-slate-500">Transaction reference</Text>
-            <Text className="text-xs sm:text-[13px] font-semibold text-slate-800">{job.txRef || 'TX-1039'}</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-slate-800">{job.txRef || 'TX-PROCESSED'}</Text>
           </View>
 
           <View className="flex-row justify-between pt-2">
             <Text className="text-xs sm:text-[13px] text-slate-500">Payout account</Text>
-            <Text className="text-xs sm:text-[13px] font-semibold text-slate-800">{job.payoutAccount || 'HDFC Bank •••• 9012'}</Text>
+            <Text className="text-xs sm:text-[13px] font-semibold text-slate-800">{job.payoutAccount || 'Direct Bank Payout'}</Text>
           </View>
         </View>
 
