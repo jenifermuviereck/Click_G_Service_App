@@ -16,7 +16,7 @@ import notificationHistoryService from '../../services/notifications/notificatio
 import { useAuth } from '../../context/AuthContext';
 import { useJobs } from '../../context/JobContext';
 
-const homeBanner = require('../../data/home.png');
+const homeBanner = require('../../assets/home_banner.png');
 
 interface HomeScreenProps {
   hideBottomNav?: boolean;

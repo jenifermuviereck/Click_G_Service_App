@@ -1,5 +1,3 @@
-import { Platform, Alert } from 'react-native';
-
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 export interface ToastPayload {

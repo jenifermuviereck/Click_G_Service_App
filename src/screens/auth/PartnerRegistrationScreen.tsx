@@ -7,7 +7,6 @@ import {
   Pressable,
   ScrollView,
   Platform,
-  Alert,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -248,7 +247,6 @@ const PartnerRegistrationScreen = () => {
 
   const handleNext = async () => {
     Keyboard.dismiss();
-    console.log('[PartnerRegistration] handleNext called, currentStep was:', currentStep);
 
     if (currentStep === 1) {
       await handleStep1Continue();
