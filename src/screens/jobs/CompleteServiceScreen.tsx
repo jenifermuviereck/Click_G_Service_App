@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
-  Alert,
   Image,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';

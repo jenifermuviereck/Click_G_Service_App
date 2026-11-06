@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
-  Alert,
   Image,
   ActivityIndicator,
   KeyboardAvoidingView,

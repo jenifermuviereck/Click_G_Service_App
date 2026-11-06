@@ -4,7 +4,6 @@ import {
   Text,
   Pressable,
   Platform,
-  Alert,
   StyleSheet,
   PermissionsAndroid,
 } from 'react-native';
