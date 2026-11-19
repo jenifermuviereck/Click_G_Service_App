@@ -81,7 +81,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ hideBottomNav = false, onSwitch
       ];
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
+    <SafeAreaView
+      className="flex-1 bg-white"
+      edges={hideBottomNav ? ['left', 'right'] : ['top', 'left', 'right']}>
       {/* Top Header: Avatar + Greeting + Notification Bell (Matching Screenshot 4) */}
       <View className="flex-row items-center justify-between px-5 py-3 bg-white border-b border-slate-100">
         <View className="flex-row items-center flex-1 mr-3">
