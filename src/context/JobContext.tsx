@@ -129,7 +129,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       ]);
 
       // 1. Process Assigned requests
-      let assignedTotal = requests.length;
+      let assignedTotal = 0;
       if (assignedRes.success && assignedRes.data?.items) {
         if (assignedRes.data.items.length > 0) {
           setRequests(assignedRes.data.items.map(mapBackendJobToServiceRequest));
@@ -138,7 +138,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // 2. Process Active / In-Progress jobs
-      let activeTotal = activeJob ? 1 : 0;
+      let activeTotal = 0;
       if (activeRes.success && activeRes.data?.items) {
         if (activeRes.data.items.length > 0) {
           setActiveJob(mapBackendJobToServiceRequest(activeRes.data.items[0]));
@@ -147,7 +147,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // 3. Process Completed jobs & Shift summary
-      let completedTotal = completedJobs.length;
+      let completedTotal = 0;
       if (completedRes.success && completedRes.data?.items) {
         if (completedRes.data.items.length > 0) {
           setCompletedJobs(completedRes.data.items.map(mapBackendJobToServiceRequest));
@@ -169,13 +169,13 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.warn('[JobContext] refreshJobs error:', err);
     }
-  }, [isAuthenticated, requests.length, activeJob, completedJobs.length]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (isAuthenticated) {
       refreshJobs();
     }
-  }, [isAuthenticated, refreshJobs]);
+  }, [isAuthenticated]);
 
   /**
    * Accepts a job request, transitions status, and refreshes metrics

@@ -12,10 +12,12 @@ import './global.css';
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider, useAppTheme } from './src/context/ThemeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { JobProvider, useJobs } from './src/context/JobContext';
+import { ModuleProvider } from './src/context/ModuleContext';
 import { useNotifications } from './src/services/notifications/useNotifications';
 import { NotificationToast } from './src/components/NotificationToast';
 import { InAppToast } from './src/components/InAppToast';
@@ -70,7 +72,11 @@ const App = () => {
       <ThemeProvider>
         <AuthProvider>
           <JobProvider>
-            <AppContent />
+            <ModuleProvider>
+              <NavigationContainer>
+                <AppContent />
+              </NavigationContainer>
+            </ModuleProvider>
           </JobProvider>
         </AuthProvider>
       </ThemeProvider>

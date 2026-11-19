@@ -1,24 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, BackHandler, Platform } from 'react-native';
+import { View, BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import BottomNavBar from '../../components/BottomNavBar';
 import HomeScreen from './HomeScreen';
-import MyJobsScreen from '../jobs/MyJobsScreen';
-import EarningsScreen from '../earnings/EarningsScreen';
-import ProfileScreen from '../profile/ProfileScreen';
-import showNotification from '../../common/utils/notification';
+import EarningsScreen from './EarningsScreen';
+import ProfileScreen from './ProfileScreen';
+import { MyJobsScreen } from '../../service';
+import { PorterDeliveriesScreen } from '../../porter';
+import showNotification from '../utils/notification';
+import { useModule } from '../../context/ModuleContext';
 
 type TabType = 'Home' | 'Jobs' | 'Earnings' | 'Profile';
 
 const MainTabsScreen = () => {
   const route = useRoute<any>();
-  const navigation = useNavigation<any>();
+  const { isPorter } = useModule();
 
   // Determine initial tab from route params or route name
   const getInitialTab = (): TabType => {
     if (route.params?.tab) return route.params.tab;
-    if (route.name === 'MyJobs') return 'Jobs';
+    if (route.name === 'MyJobs' || route.name === 'MyDeliveries') return 'Jobs';
     if (route.name === 'Earnings') return 'Earnings';
     if (route.name === 'Profile') return 'Profile';
     return 'Home';
@@ -67,7 +69,11 @@ const MainTabsScreen = () => {
           <HomeScreen hideBottomNav onSwitchTab={setActiveTab} />
         )}
         {activeTab === 'Jobs' && (
-          <MyJobsScreen hideBottomNav onBackToHome={() => setActiveTab('Home')} />
+          isPorter ? (
+            <PorterDeliveriesScreen hideBottomNav onBackToHome={() => setActiveTab('Home')} />
+          ) : (
+            <MyJobsScreen hideBottomNav onBackToHome={() => setActiveTab('Home')} />
+          )
         )}
         {activeTab === 'Earnings' && (
           <EarningsScreen hideBottomNav onBackToHome={() => setActiveTab('Home')} />
@@ -77,7 +83,7 @@ const MainTabsScreen = () => {
         )}
       </View>
 
-      {/* Permanently Static Bottom Navigation Bar (does not slide on tab changes) */}
+      {/* Permanently Static Bottom Navigation Bar */}
       <BottomNavBar currentTab={activeTab} onTabChange={setActiveTab} />
     </SafeAreaView>
   );

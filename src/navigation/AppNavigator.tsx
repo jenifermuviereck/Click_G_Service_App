@@ -1,33 +1,51 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, View } from 'react-native';
 
-import LoginScreen from '../screens/auth/LoginScreen';
-import OtpVerificationScreen from '../screens/auth/OtpVerificationScreen';
-import PartnerRegistrationScreen from '../screens/auth/PartnerRegistrationScreen';
-import MainTabsScreen from '../screens/dashboard/MainTabsScreen';
-import AcceptRequestScreen from '../screens/jobs/AcceptRequestScreen';
-import MyJobsScreen from '../screens/jobs/MyJobsScreen';
-import ActiveJobScreen from '../screens/jobs/ActiveJobScreen';
-import CompleteServiceScreen from '../screens/jobs/CompleteServiceScreen';
-import CompletionConfirmedScreen from '../screens/jobs/CompletionConfirmedScreen';
-import JobSummaryScreen from '../screens/jobs/JobSummaryScreen';
-import EarningsScreen from '../screens/earnings/EarningsScreen';
-import TransactionDetailsScreen from '../screens/earnings/TransactionDetailsScreen';
-import ProfileScreen from '../screens/profile/ProfileScreen';
-import PersonalDetailsScreen from '../screens/profile/PersonalDetailsScreen';
-import DocumentsVerificationScreen from '../screens/profile/DocumentsVerificationScreen';
-import BankDetailsScreen from '../screens/profile/BankDetailsScreen';
-import SkillsServicesScreen from '../screens/profile/SkillsServicesScreen';
-import HelpSupportScreen from '../screens/profile/HelpSupportScreen';
-import SettingsScreen from '../screens/profile/SettingsScreen';
-import { useAuth } from '../context/AuthContext';
+// Common Screens (Shared across Porter & Service)
+import {
+  LoginScreen,
+  OtpVerificationScreen,
+  HomeScreen,
+  MainTabsScreen,
+  EarningsScreen,
+  TransactionDetailsScreen,
+  ProfileScreen,
+  PersonalDetailsScreen,
+  DocumentsVerificationScreen,
+  BankDetailsScreen,
+  SkillsServicesScreen,
+  HelpSupportScreen,
+  SettingsScreen,
+  NotificationScreen,
+  NotificationTestScreen,
+} from '../common/screens';
 
-// Dev-only: notification test screen (excluded from release builds automatically)
-const NotificationTestScreen = __DEV__
-  ? require('../screens/dev/NotificationTestScreen').default
-  : null;
+// Service Module Screens
+import {
+  PartnerRegistrationScreen,
+  AcceptRequestScreen,
+  ActiveJobScreen,
+  CompleteServiceScreen,
+  CompletionConfirmedScreen,
+  JobSummaryScreen,
+  MyJobsScreen,
+} from '../service';
+
+// Porter Module Screens
+import {
+  DriverRegistrationScreen,
+  DeliveryRequestScreen,
+  PickupStopsScreen,
+  PickupVerificationScreen,
+  DeliveryNavigationScreen,
+  DeliveryConfirmationScreen,
+  DeliveryCompletedScreen,
+  BatchSummaryScreen,
+  PorterDeliveriesScreen,
+} from '../porter';
+
+import { useAuth } from '../context/AuthContext';
 
 const Stack = createNativeStackNavigator();
 
@@ -49,31 +67,45 @@ const AppNavigator = () => {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName={isAuthenticated ? 'Home' : 'Login'}
-        screenOptions={{
-          headerShown: false,
-          animation: 'slide_from_right',
-        }}>
+    <Stack.Navigator
+      initialRouteName={isAuthenticated ? 'Home' : 'Login'}
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+      }}>
         {/* Auth Flows */}
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="OtpVerification" component={OtpVerificationScreen} />
         <Stack.Screen name="PartnerRegistration" component={PartnerRegistrationScreen} />
+        <Stack.Screen name="DriverRegistration" component={DriverRegistrationScreen} />
 
         {/* Dashboard Main Tabs (Static Bottom Bar, No Slide) */}
         <Stack.Screen name="MainTabs" component={MainTabsScreen} />
         <Stack.Screen name="Home" component={MainTabsScreen} />
         <Stack.Screen name="MyJobs" component={MainTabsScreen} />
+        <Stack.Screen name="MyDeliveries" component={MainTabsScreen} />
         <Stack.Screen name="Earnings" component={MainTabsScreen} />
         <Stack.Screen name="Profile" component={MainTabsScreen} />
 
-        {/* Jobs Detail Flows */}
+        {/* Service Jobs Detail Flows */}
         <Stack.Screen name="AcceptRequest" component={AcceptRequestScreen} />
         <Stack.Screen name="ActiveJob" component={ActiveJobScreen} />
         <Stack.Screen name="CompleteService" component={CompleteServiceScreen} />
         <Stack.Screen name="CompletionConfirmed" component={CompletionConfirmedScreen} />
         <Stack.Screen name="JobSummary" component={JobSummaryScreen} />
+
+        {/* Porter Logistics Detail Flows */}
+        <Stack.Screen name="DeliveryRequest" component={DeliveryRequestScreen} />
+        <Stack.Screen name="PickupStops" component={PickupStopsScreen} />
+        <Stack.Screen name="PickupVerification" component={PickupVerificationScreen} />
+        <Stack.Screen name="DeliveryNavigation" component={DeliveryNavigationScreen} />
+        <Stack.Screen name="DeliveryConfirmation" component={DeliveryConfirmationScreen} />
+        <Stack.Screen name="DeliveryCompleted" component={DeliveryCompletedScreen} />
+        <Stack.Screen name="BatchSummary" component={BatchSummaryScreen} />
+        <Stack.Screen name="PorterDeliveries" component={PorterDeliveriesScreen} />
+
+        {/* Notifications */}
+        <Stack.Screen name="Notifications" component={NotificationScreen} />
 
         {/* Earnings Details */}
         <Stack.Screen name="TransactionDetails" component={TransactionDetailsScreen} />
@@ -86,7 +118,7 @@ const AppNavigator = () => {
         <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
 
-        {/* Dev Lab — only available in development builds */}
+        {/* Dev Lab */}
         {(__DEV__ && NotificationTestScreen) ? (
           <Stack.Screen
             name="NotificationTest"
@@ -96,7 +128,6 @@ const AppNavigator = () => {
         ) : null}
 
       </Stack.Navigator>
-    </NavigationContainer>
   );
 };
 

@@ -111,21 +111,36 @@ const LoginScreen = () => {
               )}
             </TouchableOpacity>
 
-            {/* Registration Card */}
+            {/* Driver Registration Card (Porter) */}
             <TouchableOpacity
-              className="flex-row items-center bg-[#EDF6EF] border border-[#D1EAD9] rounded-2xl px-4 py-3.5 w-full self-center"
+              className="flex-row items-center bg-[#EDF6EF] border border-[#D1EAD9] rounded-2xl px-4 py-3.5 w-full self-center mb-3"
               activeOpacity={0.88}
-              onPress={() => navigation.navigate('PartnerRegistration', { mobile })}>
+              onPress={() => navigation.navigate('DriverRegistration', { mobile })}>
               <View className="w-10 h-10 rounded-full bg-[#D1EAD9] items-center justify-center mr-3.5">
-                <Icon name="account-plus-outline" size={22} color="#07522C" />
+                <Icon name="truck-delivery" size={22} color="#07522C" />
               </View>
               <View className="flex-1">
-                <Text className="text-xs text-slate-500 mb-0.5">Don't Have a Seller Account</Text>
-                <Text className="text-[14px] sm:text-[15px] font-bold text-brand-green">Service Men Registration</Text>
+                <Text className="text-xs text-slate-500 mb-0.5">Want to join as Porter Services?</Text>
+                <Text className="text-[14px] sm:text-[15px] font-bold text-brand-green">Driver Registration</Text>
               </View>
               <View className="w-9 h-9 rounded-full bg-brand-green items-center justify-center ml-2">
                 <Icon name="arrow-right" size={18} color="#FFFFFF" />
               </View>
+            </TouchableOpacity>
+
+            {/* Service Men Registration Card */}
+            <TouchableOpacity
+              className="flex-row items-center bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 w-full self-center"
+              activeOpacity={0.88}
+              onPress={() => navigation.navigate('PartnerRegistration', { mobile })}>
+              <View className="w-8 h-8 rounded-full bg-slate-200/80 items-center justify-center mr-3">
+                <Icon name="hammer-wrench" size={17} color="#07522C" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-[11px] text-slate-500">Service Partner</Text>
+                <Text className="text-xs font-bold text-slate-800">Technician Registration</Text>
+              </View>
+              <Icon name="chevron-right" size={18} color="#94A3B8" />
             </TouchableOpacity>
           </View>
         </ScrollView>
