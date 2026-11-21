@@ -114,9 +114,15 @@ export function useNotifications(userId?: string): UseNotificationsReturn {
 
     // ── Cleanup ──────────────────────────────────────────────────────────────
     return () => {
-      unsubForeground?.();
-      unsubOpened?.();
-      unsubTokenRefresh?.();
+      if (typeof unsubForeground === 'function') {
+        unsubForeground();
+      }
+      if (typeof unsubOpened === 'function') {
+        unsubOpened();
+      }
+      if (typeof unsubTokenRefresh === 'function') {
+        unsubTokenRefresh();
+      }
     };
   }, []); // runs once on mount
 

@@ -32,14 +32,32 @@ import {
   MyJobsScreen,
 } from '../service';
 
-// Porter Module Screens
+// Porter Module Screens (20-Screen Trip & Delivery Journey + Registrations)
 import {
   DriverRegistrationScreen,
+  TripRequestScreen,
+  TripRequestDetailsScreen,
+  TripAcceptedScreen,
+  ActiveTripOverviewScreen,
+  PickupDetailsScreen,
+  NavigateToPickupScreen,
+  VerifyPickupScreen,
+  GoodsDetailsPhotoScreen,
+  ConfirmQuantityScreen,
+  ConfirmLoadingScreen,
+  ReportPickupIssueScreen,
+  AllPickupsCompletedScreen,
+  FinalDestinationDetailsScreen,
+  NavigateToCustomerScreen,
+  DeliveryGoodsSummaryScreen,
+  DeliveryConfirmationScreen,
+  VerifyReceiverScreen,
+  CustomerSignatureScreen,
+  TripCompletedScreen,
   DeliveryRequestScreen,
   PickupStopsScreen,
   PickupVerificationScreen,
   DeliveryNavigationScreen,
-  DeliveryConfirmationScreen,
   DeliveryCompletedScreen,
   BatchSummaryScreen,
   PorterDeliveriesScreen,
@@ -73,61 +91,81 @@ const AppNavigator = () => {
         headerShown: false,
         animation: 'slide_from_right',
       }}>
-        {/* Auth Flows */}
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="OtpVerification" component={OtpVerificationScreen} />
-        <Stack.Screen name="PartnerRegistration" component={PartnerRegistrationScreen} />
-        <Stack.Screen name="DriverRegistration" component={DriverRegistrationScreen} />
+      {/* Auth Flows */}
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="OtpVerification" component={OtpVerificationScreen} />
+      <Stack.Screen name="PartnerRegistration" component={PartnerRegistrationScreen} />
+      <Stack.Screen name="DriverRegistration" component={DriverRegistrationScreen} />
 
-        {/* Dashboard Main Tabs (Static Bottom Bar, No Slide) */}
-        <Stack.Screen name="MainTabs" component={MainTabsScreen} />
-        <Stack.Screen name="Home" component={MainTabsScreen} />
-        <Stack.Screen name="MyJobs" component={MainTabsScreen} />
-        <Stack.Screen name="MyDeliveries" component={MainTabsScreen} />
-        <Stack.Screen name="Earnings" component={MainTabsScreen} />
-        <Stack.Screen name="Profile" component={MainTabsScreen} />
+      {/* Dashboard Main Tabs (Static Bottom Bar, No Slide) */}
+      <Stack.Screen name="MainTabs" component={MainTabsScreen} />
+      <Stack.Screen name="Home" component={MainTabsScreen} />
+      <Stack.Screen name="MyJobs" component={MainTabsScreen} />
+      <Stack.Screen name="MyDeliveries" component={MainTabsScreen} />
+      <Stack.Screen name="Earnings" component={MainTabsScreen} />
+      <Stack.Screen name="Profile" component={MainTabsScreen} />
 
-        {/* Service Jobs Detail Flows */}
-        <Stack.Screen name="AcceptRequest" component={AcceptRequestScreen} />
-        <Stack.Screen name="ActiveJob" component={ActiveJobScreen} />
-        <Stack.Screen name="CompleteService" component={CompleteServiceScreen} />
-        <Stack.Screen name="CompletionConfirmed" component={CompletionConfirmedScreen} />
-        <Stack.Screen name="JobSummary" component={JobSummaryScreen} />
+      {/* Service Jobs Detail Flows */}
+      <Stack.Screen name="AcceptRequest" component={AcceptRequestScreen} />
+      <Stack.Screen name="ActiveJob" component={ActiveJobScreen} />
+      <Stack.Screen name="CompleteService" component={CompleteServiceScreen} />
+      <Stack.Screen name="CompletionConfirmed" component={CompletionConfirmedScreen} />
+      <Stack.Screen name="JobSummary" component={JobSummaryScreen} />
 
-        {/* Porter Logistics Detail Flows */}
-        <Stack.Screen name="DeliveryRequest" component={DeliveryRequestScreen} />
-        <Stack.Screen name="PickupStops" component={PickupStopsScreen} />
-        <Stack.Screen name="PickupVerification" component={PickupVerificationScreen} />
-        <Stack.Screen name="DeliveryNavigation" component={DeliveryNavigationScreen} />
-        <Stack.Screen name="DeliveryConfirmation" component={DeliveryConfirmationScreen} />
-        <Stack.Screen name="DeliveryCompleted" component={DeliveryCompletedScreen} />
-        <Stack.Screen name="BatchSummary" component={BatchSummaryScreen} />
-        <Stack.Screen name="PorterDeliveries" component={PorterDeliveriesScreen} />
+      {/* Porter 20-Screen Trip & Delivery Journey */}
+      <Stack.Screen name="TripRequest" component={TripRequestScreen} />
+      <Stack.Screen name="TripRequestDetails" component={TripRequestDetailsScreen} />
+      <Stack.Screen name="TripAccepted" component={TripAcceptedScreen} />
+      <Stack.Screen name="ActiveTripOverview" component={ActiveTripOverviewScreen} />
+      <Stack.Screen name="PickupDetails" component={PickupDetailsScreen} />
+      <Stack.Screen name="NavigateToPickup" component={NavigateToPickupScreen} />
+      <Stack.Screen name="VerifyPickup" component={VerifyPickupScreen} />
+      <Stack.Screen name="GoodsDetailsPhoto" component={GoodsDetailsPhotoScreen} />
+      <Stack.Screen name="ConfirmQuantity" component={ConfirmQuantityScreen} />
+      <Stack.Screen name="ConfirmLoading" component={ConfirmLoadingScreen} />
+      <Stack.Screen name="ReportPickupIssue" component={ReportPickupIssueScreen} />
+      <Stack.Screen name="AllPickupsCompleted" component={AllPickupsCompletedScreen} />
+      <Stack.Screen name="FinalDestinationDetails" component={FinalDestinationDetailsScreen} />
+      <Stack.Screen name="NavigateToCustomer" component={NavigateToCustomerScreen} />
+      <Stack.Screen name="DeliveryGoodsSummary" component={DeliveryGoodsSummaryScreen} />
+      <Stack.Screen name="DeliveryConfirmation" component={DeliveryConfirmationScreen} />
+      <Stack.Screen name="VerifyReceiver" component={VerifyReceiverScreen} />
+      <Stack.Screen name="CustomerSignature" component={CustomerSignatureScreen} />
+      <Stack.Screen name="TripCompleted" component={TripCompletedScreen} />
 
-        {/* Notifications */}
-        <Stack.Screen name="Notifications" component={NotificationScreen} />
+      {/* Route Aliases & Legacy Flows for Compatibility */}
+      <Stack.Screen name="DeliveryRequest" component={TripRequestScreen} />
+      <Stack.Screen name="PickupStops" component={ActiveTripOverviewScreen} />
+      <Stack.Screen name="PickupVerification" component={VerifyPickupScreen} />
+      <Stack.Screen name="DeliveryNavigation" component={NavigateToPickupScreen} />
+      <Stack.Screen name="DeliveryCompleted" component={TripCompletedScreen} />
+      <Stack.Screen name="BatchSummary" component={BatchSummaryScreen} />
+      <Stack.Screen name="PorterDeliveries" component={PorterDeliveriesScreen} />
 
-        {/* Earnings Details */}
-        <Stack.Screen name="TransactionDetails" component={TransactionDetailsScreen} />
+      {/* Notifications */}
+      <Stack.Screen name="Notifications" component={NotificationScreen} />
 
-        {/* Profile & Settings Sub-screens */}
-        <Stack.Screen name="PersonalDetails" component={PersonalDetailsScreen} />
-        <Stack.Screen name="SkillsServices" component={SkillsServicesScreen} />
-        <Stack.Screen name="DocumentsVerification" component={DocumentsVerificationScreen} />
-        <Stack.Screen name="BankDetails" component={BankDetailsScreen} />
-        <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
+      {/* Earnings Details */}
+      <Stack.Screen name="TransactionDetails" component={TransactionDetailsScreen} />
 
-        {/* Dev Lab */}
-        {(__DEV__ && NotificationTestScreen) ? (
-          <Stack.Screen
-            name="NotificationTest"
-            component={NotificationTestScreen}
-            options={{ title: '🔬 Notif Lab', headerShown: true }}
-          />
-        ) : null}
+      {/* Profile & Settings Sub-screens */}
+      <Stack.Screen name="PersonalDetails" component={PersonalDetailsScreen} />
+      <Stack.Screen name="SkillsServices" component={SkillsServicesScreen} />
+      <Stack.Screen name="DocumentsVerification" component={DocumentsVerificationScreen} />
+      <Stack.Screen name="BankDetails" component={BankDetailsScreen} />
+      <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
 
-      </Stack.Navigator>
+      {/* Dev Lab */}
+      {(__DEV__ && NotificationTestScreen) ? (
+        <Stack.Screen
+          name="NotificationTest"
+          component={NotificationTestScreen}
+          options={{ title: '🔬 Notif Lab', headerShown: true }}
+        />
+      ) : null}
+
+    </Stack.Navigator>
   );
 };
 

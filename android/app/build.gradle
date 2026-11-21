@@ -6,6 +6,7 @@ apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 
 react {
     autolinkLibrariesWithApp()
+    debuggableVariants = []
 }
 
 def enableProguardInReleaseBuilds = false

@@ -64,12 +64,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ hideBottomNav = false, onSwitch
   // Metrics based on active module (Porter vs Service)
   const metrics = isPorter
     ? [
-        { label: 'Assigned Orders', count: 10, route: 'DeliveryRequest' },
-        { label: 'Accept/Reject', count: 5, route: 'DeliveryRequest' },
-        { label: 'In Progress', count: 2, route: 'DeliveryNavigation' },
-        { label: 'Pending Orders', count: 2, route: 'PickupStops' },
-        { label: 'Completed', count: 1, route: 'BatchSummary' },
-        { label: 'Re Assigned Orders', count: 0, route: 'PickupStops' },
+        { label: 'Assigned Orders', count: 10, route: 'TripRequest' },
+        { label: 'Accept/Reject', count: 5, route: 'TripRequest' },
+        { label: 'In Progress', count: 2, route: 'ActiveTripOverview' },
+        { label: 'Pending Orders', count: 2, route: 'ActiveTripOverview' },
+        { label: 'Completed', count: 1, route: 'TripCompleted' },
+        { label: 'Re Assigned Orders', count: 0, route: 'TripRequest' },
       ]
     : [
         { label: 'Assigned Job', count: dashboardCounts.assigned || 10, route: 'AcceptRequest' },

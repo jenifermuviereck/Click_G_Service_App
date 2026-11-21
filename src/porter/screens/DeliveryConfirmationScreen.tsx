@@ -1,179 +1,172 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Linking,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 import showNotification from '../../common/utils/notification';
-import {
-  ScreenHeader,
-  PhotoProofSection,
-  ConditionChips,
-  OtpInputCard,
-  PackageCondition,
-} from '../../common/components';
 
-const DeliveryConfirmationScreen = () => {
+/**
+ * Screen 17 - Delivery Confirmation
+ * Shows:
+ *  - "Check. Capture. Confirm."
+ *  - Expected: 17 packages | Delivered: [-] 17 packages [+]
+ *  - Delivery photo upload
+ *  - Delivery condition list (Good condition, Partial delivery, Damaged / Missing)
+ *  - Confirm delivery details CTA
+ */
+const DeliveryConfirmationScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const [deliveredCount, setDeliveredCount] = useState(17);
+  const [condition, setCondition] = useState<'good' | 'partial' | 'damaged'>('good');
+  const [hasPhoto, setHasPhoto] = useState(true);
 
-  const [deliveryPhotoAdded, setDeliveryPhotoAdded] = useState(true);
-  const [slipPhotoAdded, setSlipPhotoAdded] = useState(true);
-  const [packageCondition, setPackageCondition] = useState<PackageCondition>('Good');
-  const [customerOtp, setCustomerOtp] = useState('5942');
-  const [notes, setNotes] = useState('');
-
-  const handleConfirm = () => {
-    if (!customerOtp.trim()) {
-      showNotification('Please enter customer delivery OTP', 'error');
-      return;
-    }
-    showNotification('Delivery confirmed!', 'success');
-    setTimeout(() => {
-      navigation.navigate('DeliveryCompleted');
-    }, 400);
-  };
-
-  const handleCall = () => {
-    Linking.openURL('tel:+919876543210').catch(() => {
-      showNotification('Calling customer at +91 98765 43210', 'info');
-    });
+  const handleAddPhoto = () => {
+    setHasPhoto(true);
+    showNotification('Delivery photo captured', 'success');
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
-      {/* Reusable Header */}
-      <ScreenHeader title="Delivery Confirmation" />
-
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1">
-        <ScrollView
-          className="flex-1 px-4 sm:px-5"
-          contentContainerStyle={{ paddingVertical: 16, paddingBottom: 32 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled">
-          
-          {/* Site / Customer Info Card */}
-          <View className="bg-white border border-slate-200 rounded-2xl p-4 mb-5 shadow-sm">
-            <View className="flex-row items-center justify-between">
-              <View className="flex-1 mr-3">
-                <Text className="text-sm font-extrabold text-slate-900">
-                  Anna Nagar Construction Site
-                </Text>
-                <Text className="text-xs text-slate-500 mt-0.5">
-                  Cement Bags • 10 bags • Rajesh Kumar
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                className="flex-row items-center bg-[#EDF6EF] border border-[#D1EAD9] rounded-xl px-3 py-1.5"
-                activeOpacity={0.7}
-                onPress={handleCall}>
-                <Icon name="phone" size={14} color="#07522C" style={{ marginRight: 4 }} />
-                <Text className="text-xs font-bold text-brand-green">Call</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Reusable Photo Proof Section */}
-          <PhotoProofSection
-            heading="Proof of Delivery"
-            slots={[
-              {
-                key: 'delivery',
-                title: 'Site Drop Photo',
-                activeTitle: 'Delivery Photo ✓',
-                isAdded: deliveryPhotoAdded,
-                onToggle: () => {
-                  setDeliveryPhotoAdded(!deliveryPhotoAdded);
-                  showNotification(deliveryPhotoAdded ? 'Delivery photo removed' : 'Delivery photo captured ✓', 'info');
-                },
-              },
-              {
-                key: 'slip',
-                title: 'Received Slip',
-                activeTitle: 'Signed Slip ✓',
-                icon: 'file-sign',
-                isAdded: slipPhotoAdded,
-                onToggle: () => {
-                  setSlipPhotoAdded(!slipPhotoAdded);
-                  showNotification(slipPhotoAdded ? 'Slip photo removed' : 'Signed slip captured ✓', 'info');
-                },
-              },
-            ]}
-          />
-
-          {/* Reusable Condition Chips */}
-          <ConditionChips
-            heading="Delivered Condition *"
-            selectedCondition={packageCondition}
-            onSelectCondition={setPackageCondition}
-          />
-
-          {/* Reusable OTP Input Card */}
-          <OtpInputCard
-            label="Customer Delivery OTP *"
-            value={customerOtp}
-            onChangeText={setCustomerOtp}
-            helperText="Obtain 4-digit verification code from recipient"
-          />
-
-          {/* Notes (Optional) */}
-          <View className="mb-5">
-            <Text className="text-xs font-semibold text-slate-700 mb-1.5">Delivery Remarks (Optional)</Text>
-            <TextInput
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm text-slate-900 focus:border-brand-green focus:bg-white"
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="e.g. Unloaded safely at gate 2 received by supervisor"
-              placeholderTextColor="#94A3B8"
-              multiline
-              numberOfLines={2}
-            />
-          </View>
-
-          {/* Earnings Breakdown Card */}
-          <View className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
-            <Text className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
-              Payment Breakdown
-            </Text>
-            <View className="flex-row justify-between py-1.5">
-              <Text className="text-xs text-slate-500">Base Delivery Fee</Text>
-              <Text className="text-xs font-semibold text-slate-800">₹180</Text>
-            </View>
-            <View className="flex-row justify-between py-1.5">
-              <Text className="text-xs text-slate-500">Platform Commission (10%)</Text>
-              <Text className="text-xs font-semibold text-red-500">- ₹18</Text>
-            </View>
-            <View className="flex-row justify-between py-1.5">
-              <Text className="text-xs text-slate-500">Heavy Weight Surcharge (500 kg)</Text>
-              <Text className="text-xs font-semibold text-emerald-600">+ ₹88</Text>
-            </View>
-            <View className="h-px bg-slate-200 my-2" />
-            <View className="flex-row justify-between items-center py-1">
-              <Text className="text-sm font-bold text-slate-900">Net Partner Earnings</Text>
-              <Text className="text-lg font-black text-brand-green">₹250</Text>
-            </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-
-      {/* Bottom CTA */}
-      <View className="px-4 py-3 bg-white border-t border-slate-100 shadow-md">
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
+      {/* Header */}
+      <View className="flex-row items-center px-4 py-3 border-b border-slate-100">
         <TouchableOpacity
-          className="w-full h-12 bg-brand-green rounded-xl items-center justify-center flex-row shadow-sm"
+          onPress={() => navigation.goBack()}
+          className="p-1 -ml-1 mr-2"
+          activeOpacity={0.7}>
+          <Icon name="chevron-left" size={28} color="#1E293B" />
+        </TouchableOpacity>
+        <Text className="text-base font-semibold text-slate-800">Delivery confirmation</Text>
+      </View>
+
+      <ScrollView className="flex-1 bg-slate-50 px-4 pt-4" showsVerticalScrollIndicator={false}>
+        <Text className="text-2xl font-black text-slate-900 leading-tight">
+          Check. Capture. Confirm.
+        </Text>
+
+        {/* Quantity Check Card */}
+        <View className="mt-4 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex-row items-center justify-between">
+          <View>
+            <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Expected
+            </Text>
+            <Text className="text-2xl font-black text-slate-900 mt-0.5">17</Text>
+            <Text className="text-[10px] text-slate-400">packages</Text>
+          </View>
+
+          <View className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl p-1">
+            <TouchableOpacity
+              className="w-9 h-9 rounded-lg bg-white border border-slate-200 items-center justify-center shadow-xs"
+              activeOpacity={0.7}
+              onPress={() => setDeliveredCount(Math.max(1, deliveredCount - 1))}>
+              <Icon name="minus" size={18} color="#07522C" />
+            </TouchableOpacity>
+
+            <View className="px-3 items-center">
+              <Text className="text-lg font-black text-slate-900">{deliveredCount}</Text>
+              <Text className="text-[9px] text-slate-400">packages</Text>
+            </View>
+
+            <TouchableOpacity
+              className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200 items-center justify-center shadow-xs"
+              activeOpacity={0.7}
+              onPress={() => setDeliveredCount(deliveredCount + 1)}>
+              <Icon name="plus" size={18} color="#07522C" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Delivery Photo Section */}
+        <View className="mt-5">
+          <Text className="text-sm font-bold text-slate-900 mb-2">Delivery photo</Text>
+          <View className="flex-row gap-3">
+            {hasPhoto && (
+              <View className="w-28 h-24 rounded-2xl overflow-hidden border border-slate-200 bg-slate-200 shadow-sm">
+                <Image
+                  source={{ uri: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=300' }}
+                  className="w-full h-full"
+                  resizeMode="cover"
+                />
+              </View>
+            )}
+
+            <TouchableOpacity
+              className="w-24 h-24 rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/50 items-center justify-center"
+              activeOpacity={0.7}
+              onPress={handleAddPhoto}>
+              <Icon name="camera-plus-outline" size={24} color="#07522C" />
+              <Text className="text-[10px] font-bold text-emerald-900 mt-1">Add photo</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Delivery Condition Section */}
+        <View className="mt-5">
+          <Text className="text-sm font-bold text-slate-900 mb-2.5">Delivery condition</Text>
+
+          {/* Option 1: Good condition */}
+          <TouchableOpacity
+            className={`p-3.5 rounded-xl border mb-2.5 flex-row items-center justify-between ${
+              condition === 'good'
+                ? 'bg-emerald-50/80 border-emerald-300'
+                : 'bg-white border-slate-200'
+            }`}
+            activeOpacity={0.7}
+            onPress={() => setCondition('good')}>
+            <View className="flex-row items-center">
+              <Icon name="check-circle" size={18} color={condition === 'good' ? '#07522C' : '#94A3B8'} />
+              <Text className="text-xs font-bold text-emerald-950 ml-2.5">Good condition</Text>
+            </View>
+            <Icon name="chevron-right" size={18} color="#07522C" />
+          </TouchableOpacity>
+
+          {/* Option 2: Report partial delivery */}
+          <TouchableOpacity
+            className={`p-3.5 rounded-xl border mb-2.5 flex-row items-center justify-between ${
+              condition === 'partial'
+                ? 'bg-amber-50 border-amber-300'
+                : 'bg-white border-slate-200'
+            }`}
+            activeOpacity={0.7}
+            onPress={() => setCondition('partial')}>
+            <View className="flex-row items-center">
+              <Icon name="alert-circle-outline" size={18} color="#D97706" />
+              <Text className="text-xs font-bold text-amber-900 ml-2.5">Report partial delivery</Text>
+            </View>
+            <Icon name="chevron-right" size={18} color="#D97706" />
+          </TouchableOpacity>
+
+          {/* Option 3: Damaged / Missing goods */}
+          <TouchableOpacity
+            className={`p-3.5 rounded-xl border flex-row items-center justify-between ${
+              condition === 'damaged'
+                ? 'bg-red-50 border-red-300'
+                : 'bg-white border-slate-200'
+            }`}
+            activeOpacity={0.7}
+            onPress={() => setCondition('damaged')}>
+            <View className="flex-row items-center">
+              <Icon name="close-circle-outline" size={18} color="#EF4444" />
+              <Text className="text-xs font-bold text-red-700 ml-2.5">Damaged / Missing goods</Text>
+            </View>
+            <Icon name="chevron-right" size={18} color="#EF4444" />
+          </TouchableOpacity>
+        </View>
+
+        <View className="h-20" />
+      </ScrollView>
+
+      {/* Sticky Bottom Actions */}
+      <View className="px-4 py-3 bg-white border-t border-slate-100">
+        <Text className="text-[11px] font-medium text-slate-400 text-center mb-2">
+          PT1025 · Verify goods before receiver OTP
+        </Text>
+        <TouchableOpacity
+          className="w-full bg-[#07522C] py-3.5 rounded-xl items-center justify-center shadow-sm"
           activeOpacity={0.85}
-          onPress={handleConfirm}>
-          <Text className="text-white font-bold text-base mr-2">Confirm Delivery</Text>
-          <Icon name="check" size={18} color="#FFFFFF" />
+          onPress={() => navigation.navigate('VerifyReceiver')}>
+          <Text className="text-base font-bold text-white tracking-wide">
+            Confirm delivery details
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
